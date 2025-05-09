@@ -1,0 +1,427 @@
+package egovframework.web;
+
+import java.io.File;
+import java.io.IOException;
+import java.lang.reflect.Field;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpSession;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.multipart.MultipartFile;
+
+import egovframework.service.ChannelService;
+import egovframework.service.ChannelVO;
+import egovframework.service.FileVO;
+import egovframework.service.KeywordVO;
+import egovframework.service.MainBbsVO;
+import egovframework.service.MainInputVO;
+import egovframework.service.MainVideoVO;
+import egovframework.service.ReportsVO;
+import egovframework.service.UserVO;
+import egovframework.service.VideoService;
+import egovframework.service.VideoVO;
+
+@Controller
+public class VideoContoller {
+
+	/** VideoService*/
+	@Resource(name = "videoService")
+	private VideoService videoService;
+	
+	/** VideoService*/
+	@Resource(name = "channelService")
+	private ChannelService channelService;
+	
+	@GetMapping("/video_upload.do")
+	public String Video_upload(Model model, int idx
+	) {
+		model.addAttribute("idx", idx);
+		return "video/video_upload";
+	}
+	
+//	keyword 편집 모달
+	@GetMapping("/video_keywordEdit.do")
+	public String video_keywordEdit(Model model) {
+		List<KeywordVO> keywordList = videoService.selectKeywordList();
+		model.addAttribute("keywordList", keywordList);
+		return "video/video_keywordEdit";
+	}
+	
+	@Transactional
+	@ResponseBody
+	@PostMapping("/video_upload.do")
+	public Map<String, Object> Video_uploadPost(HttpServletRequest request, HttpSession session, VideoVO videoVO,
+			@RequestParam MultipartFile videoFile,
+		    @RequestParam(value = "thumbnail", required = false) MultipartFile thumbnail,
+		    @RequestParam(value = "keywords", required = false) List<String> keywords
+    )
+			throws IllegalStateException, IOException {
+		
+		@SuppressWarnings("unchecked")
+		HashMap userData = (HashMap)session.getAttribute("userData");
+	    String id = null;
+	    if (userData != null && userData.get("id") != null) {
+	        id = userData.get("id").toString();
+	    }
+        videoVO.setUser(id);
+		
+        /* 업로드할 폴더 생성 - S */
+        String rootFolder = request.getSession().getServletContext().getRealPath("/"); // 현재 작업 디렉토리를 가져옴
+        // (현재 작업 폴더)\collaview\.metadata\.plugins\org.eclipse.wst.server.core\tmp0\wtpwebapps\collaview
+        String beforeMetadata = rootFolder.substring(0, rootFolder.indexOf(".metadata")); // 테스트용 경로
+        String uploadDir = beforeMetadata + "collaview" + File.separator + "src" + File.separator + "main"
+        		+ File.separator + "webapp" + File.separator + "file" + File.separator + "video" + File.separator;
+
+	    File folder = new File(uploadDir);
+		if (!folder.exists()) {
+		    boolean created = folder.mkdirs();
+		    if (created) {
+		        System.out.println("업로드 폴더 생성됨: " + uploadDir);
+		    } else {
+		        System.out.println("업로드 폴더 생성 실패!");
+		    }
+		}
+        /* 업로드할 폴더 생성 - E */
+
+		int uploadVideo = videoService.insertVideo(videoVO, videoFile, thumbnail, uploadDir);
+		
+		int VideoIdx = videoService.selectVideoIdx();
+		
+		int uploadFile = videoService.insertFile(id, VideoIdx, videoFile, "ch_video", uploadDir);
+		int insertKeyword = 0;
+		
+		Map<String, Object> resp = new HashMap<>();
+	    
+	    if (keywords != null && !keywords.isEmpty()) {
+	    	insertKeyword = videoService.insertKeyword(keywords);
+	    } else {
+	    	insertKeyword = 1;
+	    }
+	    
+	    if(uploadVideo == uploadFile && uploadFile == insertKeyword) {
+	    	resp.put("idx", videoVO.getIdx());
+	    	resp.put("status", "success");
+	    	System.out.println("idx : " + videoVO.getIdx());
+	    }
+	    else {
+	    	resp.put("status", "fail");
+	    }
+	    return resp;
+	}
+	
+	@GetMapping("/video_emsembleAdd.do")
+	public String video_emsembleAdd(HttpSession session, Model model, int idx) {
+		
+		@SuppressWarnings("unchecked")
+		HashMap userData = (HashMap)session.getAttribute("userData");
+	    String id = null;
+	    if (userData != null && userData.get("id") != null) {
+	        id = userData.get("id").toString();
+	    }
+        
+        VideoVO videoVO = videoService.selectVideoInfo(idx);
+        model.addAttribute("videoVO", videoVO);
+		List<FileVO> umsembleMemberList = videoService.selectFileList(idx, "ch_video");
+		
+//		설정한 인원보다 적게 참여했는지 체크
+		if(videoVO.getCategory().equals("앙상블 챌린지")) {
+			int memberCount = umsembleMemberList.size();
+			if(memberCount > videoVO.getPeople_cnt()) {
+				return "redirect:/index.do?error=ensOver";
+			}
+		}
+		model.addAttribute("umsembleMemberList", umsembleMemberList);
+		
+        UserVO userVO = videoService.selectEmsembleDuplication(id, idx, "ch_video");
+        if(userVO == null) {
+			List<FileVO> fileList = videoService.selectFileList(idx, "ch_video");
+			model.addAttribute("fileList", fileList);
+			
+			List<KeywordVO> keywordList = videoService.selectMyKeywordList(idx);
+			model.addAttribute("keywordList", keywordList);
+			return "video/video_emsembleAdd";
+        }
+        else {
+        	return "redirect:/index.do?error=ensDup";
+        }
+	}
+	
+	@ResponseBody
+	@PostMapping("/video_emsembleAdd.do")
+	public String video_emsembleAddPost(HttpServletRequest request, Model model, HttpSession session,
+			FileVO file, MultipartFile video)
+			throws IllegalStateException, IOException {
+		
+		@SuppressWarnings("unchecked")
+		HashMap userData = (HashMap)session.getAttribute("userData");
+	    String id = null;
+	    if (userData != null && userData.get("id") != null) {
+	        id = userData.get("id").toString();
+	    }
+	    
+		List<FileVO> umsembleMemberList = videoService.selectFileList(file.getNum(), "ch_video");
+		
+		VideoVO videoVO = videoService.selectVideoInfo(file.getNum());
+		model.addAttribute("videoVO", videoVO);
+//		설정한 인원보다 적게 참여했는지 체크
+		if(videoVO.getCategory().equals("앙상블 챌린지")) {
+			if(umsembleMemberList.size() > videoVO.getPeople_cnt()) {
+				return "redirect:/index.do?error=ensOver";
+			}
+		}
+		
+		
+        /* 업로드할 폴더 생성 - S */
+        String rootFolder = request.getSession().getServletContext().getRealPath("/"); // 현재 작업 디렉토리를 가져옴
+        // (현재 작업 폴더)\collaview\.metadata\.plugins\org.eclipse.wst.server.core\tmp0\wtpwebapps\collaview
+        String beforeMetadata = rootFolder.substring(0, rootFolder.indexOf(".metadata")); // 테스트용 경로
+        String uploadDir = beforeMetadata + "collaview" + File.separator + "src" + File.separator + "main"
+        		+ File.separator + "webapp" + File.separator + "file" + File.separator + "video" + File.separator;
+
+	    File folder = new File(uploadDir);
+		if (!folder.exists()) {
+		    boolean created = folder.mkdirs();
+		    if (created) {
+		        System.out.println("업로드 폴더 생성됨: " + uploadDir);
+		    } else {
+		        System.out.println("업로드 폴더 생성 실패!");
+		    }
+		}
+        /* 업로드할 폴더 생성 - E */
+        
+    	int res = videoService.insertFile(id, file.getNum(), video, file.getTable(), uploadDir);
+    	if(res == 1) {
+    		return "success";
+    	}
+    	else {
+    		return "fail";
+    	}
+	}
+	
+	@GetMapping("/video_page.do")
+	public String video_page(HttpServletRequest request, HttpSession session, Model model, int idx) {
+		
+//		아이디 NULL값 처리
+		@SuppressWarnings("unchecked")
+		HashMap userData = (HashMap)session.getAttribute("userData");
+	    String id = null;
+	    if (userData != null && userData.get("id") != null) {
+	        id = userData.get("id").toString();
+	    }
+	    
+		model.addAttribute("idx", idx);
+        
+//	    IP 받아오기
+        String ip = getClientIp(request);
+        
+        VideoVO videoViewCheck = videoService.selectVideoView(idx, ip);
+
+//      조회 테이블에 데이터가 없거나 시간이 5분이 지나지 않았으면 조회수 증가 X
+        if (videoViewCheck == null) {
+            videoService.insertView(idx, id, ip);
+        } else {
+            LocalDateTime lastView = videoViewCheck.getRegister_date();
+            LocalDateTime now = LocalDateTime.now();
+            long minutesSinceLast = ChronoUnit.MINUTES.between(lastView, now);
+
+            if (minutesSinceLast >= 5) {
+                videoService.insertView(idx, id, ip);
+            }
+        }
+		
+		VideoVO videoVO = videoService.selectVideoInfo(idx);
+		model.addAttribute("videoVO", videoVO);
+		
+		List<FileVO> FileVO = videoService.selectVideoFile(idx);
+		model.addAttribute("fileList", FileVO);
+		
+		List<UserVO> userList = channelService.selectChannelMember(Integer.parseInt(videoVO.getChannel()));
+		model.addAttribute("userList", userList);
+		
+		ChannelVO channelVO = channelService.selectChannel(Integer.parseInt(videoVO.getChannel()));
+		model.addAttribute("channelVO", channelVO);
+		
+		UserVO userVO = channelService.selectId(channelVO.getUser());
+		model.addAttribute("userVO", userVO);
+		
+		List<FileVO> umsembleMemberList = videoService.selectFileList(idx, "ch_video");
+		model.addAttribute("umsembleMemberList", umsembleMemberList);
+		
+//		설정한 인원보다 적게 참여했는지 체크
+		if(videoVO.getCategory().equals("앙상블 챌린지")) {
+			if(umsembleMemberList.size() > videoVO.getPeople_cnt()) {
+				model.addAttribute("ensOver", "over");
+			}
+		}
+		
+		List<KeywordVO> keywordList = videoService.selectMyKeywordList(idx);
+		model.addAttribute("keywordList", keywordList);
+		
+		MainInputVO input = new MainInputVO();
+		List<MainVideoVO> list = videoService.selectMainVideoNoneUser(input);
+
+        JSONObject data = new JSONObject();
+        JSONArray jsonArray = new JSONArray();
+        for (int i = 0; i < list.size(); i++) {
+            JSONObject jsonObject = voToJson(list.get(i)); // VO 객체를 자동 변환
+
+            jsonArray.add(jsonObject);
+        }
+        data.put("videoList", jsonArray);
+
+		model.addAttribute("result", data);
+        
+//      신고한 게시물일 경우 신고 버튼 안보이게
+        ReportsVO reportsInfo = videoService.selectReportsCheck(id, idx);
+        if(reportsInfo != null) {
+        	model.addAttribute("reports", "y");
+        }
+        else {
+        	model.addAttribute("reports", "n");
+        }
+		
+		return "video/video_page";
+	}
+	
+
+
+	@ResponseBody
+	@RequestMapping(value = "/ajax_video_more.do")
+	public String ajax_video_more(@RequestParam HashMap<String, Object> params) throws Exception {
+		MainInputVO input = new MainInputVO();
+		input.setVideoIdxList((List<Integer>) objectToList(params.get("videoIdxList")));
+		input.setBbsIdxList((List<Integer>) objectToList(params.get("bbsIdxList")));
+
+	    List<MainVideoVO> list = videoService.selectMainVideoNoneUser(input);
+
+	    JSONObject data = new JSONObject();
+	    JSONArray jsonArray1 = new JSONArray();
+	    JSONArray jsonArray2 = new JSONArray();
+
+	    for (int i = 0; i < list.size(); i++) {
+	        JSONObject jsonObject = voToJson(list.get(i)); // VO 객체를 JSON으로 변환
+
+	        if(i < 8) {
+	            jsonArray1.add(jsonObject);
+	        } else {
+	            jsonArray2.add(jsonObject);
+	        }
+	    }
+
+	    data.put("0", jsonArray1);
+	    data.put("2", jsonArray2);
+
+	    return data.toString();
+	}
+	
+	@ResponseBody
+	@PostMapping("/ajax_modalRating.do")
+	public String ajax_modalRating(HttpSession session, int idx, int skill, int manner, int charisma, int perform) {
+		
+		@SuppressWarnings("unchecked")
+		HashMap userData = (HashMap)session.getAttribute("userData");
+	    String id = null;
+	    if (userData != null && userData.get("id") != null) {
+	        id = userData.get("id").toString();
+	    }
+        
+//		이미 평가한 영상인지 체크
+		UserVO ratingCheck = videoService.selectRatingCheck(idx, id);
+		if(ratingCheck != null) {
+			return "alreadyRating";
+		}
+		
+        if(id == null || id.isEmpty() || id.equals("")) {
+        	return "notLogin";
+        }
+        
+		return videoService.insertRating(id, idx, skill, manner, charisma, perform);
+	}
+	
+//	IP 받아오는 메소드
+	private String getClientIp(HttpServletRequest request) {
+		String ip = request.getHeader("X-Forwarded-For");
+	    if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
+	        int commaIndex = ip.indexOf(',');
+	        if (commaIndex != -1) {
+	            ip = ip.substring(0, commaIndex).trim();
+	        }
+	        return ip;
+	    }
+	    ip = request.getHeader("Proxy-Client-IP");
+	    if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
+	        return ip;
+	    }
+	    ip = request.getHeader("WL-Proxy-Client-IP");
+	    if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
+	        return ip;
+	    }
+	    ip = request.getHeader("HTTP_CLIENT_IP");
+	    if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
+	    	return ip;
+	    }
+	    ip = request.getHeader("X-Real-IP");
+	    if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
+	    	return ip;
+	    }
+	    ip = request.getHeader("X-RealIP");
+	    if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
+	    	return ip;
+	    }
+	    ip = request.getHeader("REMOTE_ADDR");
+	    if (ip != null && ip.length() != 0 && !"unknown".equalsIgnoreCase(ip)) {
+	    	return ip;
+	    }
+	    return request.getRemoteAddr();
+	}
+	
+    // VO 객체를 JSONObject로 자동 변환하는 메서드
+    private JSONObject voToJson(Object vo) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            for (Field field : vo.getClass().getDeclaredFields()) {
+                field.setAccessible(true); // private 필드 접근 허용
+                jsonObject.put(field.getName(), field.get(vo)); // 키: 필드명, 값: 필드 값
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
+    }
+    
+    // object 객체를 list 형태로 변환
+    private List<?> objectToList(Object obj){
+        List<Object> resultList = new ArrayList<>();
+
+        if (obj == null) {
+            return resultList; // null이면 빈 리스트 반환
+        }
+
+        if (obj instanceof List<?>) {
+            return (List<?>) obj; // 이미 List<?>이면 그대로 반환
+        } else if (obj instanceof String) {
+            // GET 방식에서 "1,2,3" 형태로 들어왔을 경우 변환
+            return Arrays.asList(((String) obj).split(","));
+        }
+
+        return resultList;
+    }
+}

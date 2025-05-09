@@ -1,0 +1,99 @@
+@charset "UTF-8";
+
+.container {padding: 70px 16px 174px;}
+.container >div {margin-bottom: 16px;}
+.container >div:last-child {margin-bottom: 0;}
+img {width: 100%; height: 100%; object-fit: cover;}
+.tit {margin-bottom: 5px;
+    font-weight: 500;
+}
+.txt {color: #555;}
+
+.user {display: flex; align-items: center;}
+.userImg {overflow: hidden;
+    width: 50px; height: 50px; margin-right: 10px;
+    border-radius: 50%;
+    background: var(--noneProfileImage) no-repeat center/cover;
+}
+.user .nick {font-weight: 500; font-size: 1.1rem;}
+
+.historyList {display: flex; flex-direction: column; gap: 8px;}
+.historyList >li {
+    padding: 8px;
+    border: 1px solid #ccc; border-radius: 5px;
+    background-color: #ddd;
+}
+.historyList >li.file {cursor: pointer;
+    box-shadow: 0 0 5px 0 rgba(0,0,0,0.2);
+    border: 0;
+    background-color: #fff;
+}
+.historyList >li.file span {display: inline-block;
+    margin-bottom: 5px;
+    position: relative;
+}
+.historyList >li.file span::after {content: "attach_file";
+    font-family: "Material symbols rounded";
+    font-size: 20px; line-height: 26px; color: #777;
+    position: absolute; right: -17px; top: 0;
+}
+.historyList >li em {display: block;
+    font-size: 0.9rem; color: #777;
+}
+
+.keywordList {display: flex; flex-wrap: wrap; gap: 8px;}
+.keywordList >li {display: inline-block;
+    border: 1px solid #ddd; border-radius: 5px;
+    border-radius: 5px;
+    padding: 8px;
+}
+
+.channelList {display: flex; flex-direction: column; gap: 16px;}
+.channelList >a {box-shadow: 0 0 5px 0 rgba(0, 0, 0, 0.2);
+    display: flex; align-items: center;
+    width: 100%;
+    border-radius: 5px;
+    padding: 10px;
+}
+.channelImg {flex-shrink: 0;
+    overflow: hidden;
+    width: 100px; height: 100px;
+    margin-right: 16px;
+    border-radius: 50%;
+    background: var(--noneChannelImage) no-repeat center/cover;
+}
+.channelTxt {color: #555;}
+.channelTitBox {display: flex; align-items: center; gap: 3px;
+    margin-bottom: 5px;
+}
+.channelName {overflow: hidden;
+    display: -webkit-box;
+    width: fit-content;
+    font-weight: 500; text-overflow: ellipsis; word-break: break-all;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.channelLevel {flex-shrink: 0;
+    display: block;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background-color: var(--noneImage);
+}
+.channelTxtBox >li {font-size: 0.9rem; line-height: 1.5em;}
+
+.btnWrap {display: flex; flex-direction: column; gap: 8px;
+    width: 100%;
+    padding: 0 16px;
+    position: fixed; left: 0; right: 0; bottom: 76px; z-index: 100;
+}
+
+
+
+
+
+.cancelAccountModal .txtWrap {margin-bottom: 16px;}
+.cancelAccountModal .inputBox {height: 40px; margin-bottom: 16px;
+    border: 1px solid #ddd; border-radius: 5px;
+}
+.cancelAccountModal .btnBox {display: flex; justify-content: space-between; align-items: center; gap: 16px;}
+

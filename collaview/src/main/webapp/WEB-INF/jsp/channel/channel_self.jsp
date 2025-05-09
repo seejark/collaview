@@ -1,0 +1,342 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c"      uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fn"      uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="fmt"      uri="http://java.sun.com/jsp/jstl/fmt"%>
+<!DOCTYPE html>
+<html>
+<head>
+	<jsp:include page="/head.jsp" />
+	<link rel="stylesheet" href="/css/channel_self.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+</head>
+<body>
+	<jsp:include page="/header.jsp" />
+	
+	<main class="container" id="container">
+		<div class="wrap channel-header">
+			<img src="/file/thumbnail/${channelVO.thumbnail_file}" alt="${channelVO.thumbnail_origin}" class="avatar"/>
+			<div class="header-text">
+				<div class="header-title-wrapper">
+					<div class="channel-name">${channelVO.name}</div>
+					<div class="verified-icon channelLevel rank${channelVO.rank}"></div>
+				</div>
+				<div class="favorite-count">
+					즐겨찾기 수: ${bookmark}
+				</div>
+				<div class="last-upload">
+					마지막 영상 등록일 : ${last_upload_date}
+				</div>
+			</div>
+		</div>
+		
+		<div class="wrap">
+			<div class="title">채널 분석</div>
+			<div class="analysis">
+				<div class="analysis-title">즐겨찾기 수</div>
+				<div class="analysis-comment">${bookmark}명</div>
+				
+				<div class="analysis-title">총 조회수</div>
+				<div class="analysis-comment">${totViewCnt}회</div>
+				
+				<div class="analysis-title">실력 평균</div>
+				<div class="analysis-comment">
+					<fmt:formatNumber value="${skill_score}" type="number" minFractionDigits="2"  maxFractionDigits="2"/>점
+				</div>
+				
+				<div class="analysis-title">아우라 평균</div>
+				<div class="analysis-comment">
+					<fmt:formatNumber value="${aura_score}" type="number" minFractionDigits="2"  maxFractionDigits="2"/>점
+				</div>
+				
+			</div>
+		</div>
+		
+		<div class="wrap">
+			<div class="title">소속 멤버</div>
+			<div class="member">
+				<div class="member-item">
+					<div class="avatar-small"><img src="/file/profile/${channelVO.profile_file}" alt="${profile_origin}" class="avatar-small"/></div>
+					<div class="nick">${channelVO.user}</div>
+				</div>
+				<c:forEach var="user" items="${userList}">
+					<div class="member-item">
+						<img src="/file/profile/${user.profile_file}" alt="${profile_origin}" class="avatar-small"/>
+						<div class="nick">${user.nick}</div>
+					</div>
+				</c:forEach>
+			</div>
+		</div>
+		<div class="wrap">
+			<div class="title">채널 소개</div>
+			<div class="introduce">${channelVO.contents}</div>
+		</div>
+		<div class="wrap">
+			<div class="title">채널 검색 및 추천 허용</div>
+			<div class="select">
+				<div class="selectBox">
+					<div class="select-title">밴드모집</div>
+					<div class="select-opt ${channelVO.recruit_band == 'y' ? 'allowance' : 'refusal'}">${channelVO.recruit_band == 'y' ? '허용' : '거부'}</div>
+				</div>
+				<div class="selectBox">
+					<div class="select-title">채용</div>
+					<div class="select-opt ${channelVO.recruit_company == 'y' ? 'allowance' : 'refusal'}">${channelVO.recruit_company == 'y' ? '허용' : '거부'}</div>
+				</div>
+			</div>
+		</div>
+		<div class="wrap">
+			<div class="video-header">
+				<div class="title">영상</div>
+				<c:if test="${channelVO.user == userVO.id || userVO.admin == 'y'}">
+					<button type="button" onclick="location.href='/video_upload.do?idx=${channelVO.idx}'" class="add-button"><span class="material-symbols-rounded">add</span></button>
+				</c:if>
+			</div>
+			<table class="video-table">
+				<thead>
+					<tr>
+						<th>분류</th>
+						<th>제목</th>
+						<th>조회수</th>
+						<th>상태</th>
+					</tr>
+				</thead>
+				<tbody id="videoTableBody">
+					<c:if test="${!empty videoList}">
+						<c:forEach var="video" items="${videoList}">
+							<tr>
+								<td>${video.category}</td>
+				                <td>${video.title}</td>
+				                <td>${video.view}</td>
+				                <td>${video.status}</td>
+							</tr>
+						</c:forEach>
+					</c:if>
+				</tbody>
+			</table>
+			<c:if test="${!empty videoList}">
+				<div class="pagination">
+					<span class="material-symbols-rounded double-video-first">keyboard_double_arrow_left</span>
+					<span class="material-symbols-rounded single-video-prev">keyboard_arrow_left</span>
+					<c:forEach var="i" begin="1" end="${videoTotal}">
+				        <a href="#" class="page-link_video" data-page="${i}">${i}</a>
+				    </c:forEach>
+					<span class="material-symbols-rounded single-video-next">keyboard_arrow_right</span>
+					<span class="material-symbols-rounded double-video-last">keyboard_double_arrow_right</span>
+				</div>
+			</c:if>
+		</div>
+		
+		<div class="wrap swiper-container">
+		    <div class="title">나의 신청 정보 리스트</div>
+		    <div class="aplication-list swiper-wrapper">
+		        <c:forEach var="recruit" items="${recruitList}">
+		            <div class="aplication-item swiper-slide" onclick="location.href='channel_recruit.do?idx=${recruit.idx}'">
+		                <div class="aplication-tag">
+		                    <div class="aplication-tag-text">${recruit.category}</div>
+		                </div>
+		                <div class="aplication-text">${recruit.title}</div>
+		            </div>
+		        </c:forEach>
+		    </div>
+		</div>
+
+
+		<div class="wrap">
+			<div class="title">받은 신청 정보 리스트</div>
+			<table class="receive-aplication">
+				<thead>
+					<tr>
+						<th>카테고리</th>
+						<th>게시글 제목</th>
+						<th>신청자</th>
+						<th>등급</th>
+					</tr>
+				</thead>
+				<tbody id="applyTableBody">
+					<c:forEach var="apply" items="${recruit_applyList}">
+						<tr onclick="location.href='channel_application.do?idx=${apply.idx}'">
+							<td>${apply.category}</td>
+			                <td>${apply.title}</td>
+			                <td>${apply.user}</td>
+			                <td>${apply.level}</td>
+						</tr>
+					</c:forEach>
+				</tbody>
+			</table>
+			<c:if test="${!empty recruit_applyList}">
+				<div class="pagination">
+				    <span class="material-symbols-rounded apply-double-first">keyboard_double_arrow_left</span>
+				    <span class="material-symbols-rounded apply-single-prev">keyboard_arrow_left</span>
+				    <c:forEach var="i" begin="1" end="${applyTotal}">
+				        <a href="#" class="page-link-apply" data-page="${i}">${i}</a>
+				    </c:forEach>
+				    <span class="material-symbols-rounded apply-single-next">keyboard_arrow_right</span>
+				    <span class="material-symbols-rounded apply-double-last">keyboard_double_arrow_right</span>
+				</div>
+			</c:if>
+		</div>
+		
+		<div class="button-group">
+			<c:if test="${channelVO.user == userVO.id}">
+				<div class="update-btn" onclick="location.href='/channel_setting.do?idx=${channelVO.idx}'">수정</div>
+				<div class="delete-btn" onclick="channel_del(${channelVO.idx})">삭제</div>
+			</c:if>
+		</div>
+	</main>
+	<jsp:include page="/footer.jsp" />
+	<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+	<script>
+		$(document).ready(function(){
+		    var channelId = ${channelVO.idx};
+		    var videoPageSize = 8;
+		    var currentPage = ${videoPage};
+		    var totalPages = ${videoTotal};
+	
+		    function loadVideoPage(page) {
+		        $.ajax({
+		            url: '/videoListPartial.do',
+		            type: 'GET',
+		            data: {
+		                idx: channelId,
+		                videoPage: page,
+		                videoPageSize: videoPageSize
+		            },
+		            success: function(response) {
+		                $("#videoTableBody").html(response);
+		                currentPage = page;
+		                $(".pagination a.page-link_video").removeClass("active");
+		                $(".pagination a.page-link_video[data-page='" + page + "']").addClass("active");
+		            },
+		            error: function(xhr, status, error) {
+		                console.error("영상 리스트 불러오기 실패: " + error);
+		            }
+		        });
+		    }
+	
+		    $(".pagination a.page-link_video").click(function(e) {
+		        e.preventDefault();
+		        var page = $(this).data("page");
+		        loadVideoPage(page);
+		    });
+	
+		    $(".pagination .single-video-prev").click(function(e){
+		        e.preventDefault();
+		        if(currentPage > 1) {
+		            loadVideoPage(currentPage - 1);
+		        }
+		    });
+	
+		    $(".pagination .single-video-next").click(function(e){
+		        e.preventDefault();
+		        if(currentPage < totalPages) {
+		            loadVideoPage(currentPage + 1);
+		        }
+		    });
+	
+		    $(".pagination .double-video-first").click(function(e){
+		        e.preventDefault();
+		        if(currentPage !== 1) {
+		            loadVideoPage(1);
+		        }
+		    });
+	
+		    $(".pagination .double-video-last").click(function(e){
+		        e.preventDefault();
+		        if(currentPage !== totalPages) {
+		            loadVideoPage(totalPages);
+		        }
+		    });
+		});
+		
+	    $(document).ready(function(){
+	    	var channelId = ${channelVO.idx};
+	        var applyPageSize = 5;
+	        var applyCurrentPage = 1;
+	        var applyTotalPages = ${applyTotal};
+	    
+	        function loadApplyPage(page) {
+	            $.ajax({
+	                url: '/applyListPartial.do',
+	                type: 'GET',
+	                data: {
+	                	idx : channelId,
+	                    page : page,
+	                    pageSize : applyPageSize
+	                },
+	                success: function(response) {
+	                    $("#applyTableBody").html(response);
+	                    applyCurrentPage = page;
+	                    $(".page-link-apply").removeClass("active");
+	                    $(".page-link-apply[data-page='" + page + "']").addClass("active");
+	                },
+	                error: function(xhr, status, error) {
+	                    console.error("신청 리스트 불러오기 실패: " + error);
+	                }
+	            });
+	        }
+	    
+	        $(".page-link-apply").click(function(e) {
+	            e.preventDefault();
+	            var page = $(this).data("page");
+	            loadApplyPage(page);
+	        });
+	    
+	        $(".apply-single-prev").click(function(e){
+	            e.preventDefault();
+	            if(applyCurrentPage > 1) {
+	                loadApplyPage(applyCurrentPage - 1);
+	            }
+	        });
+	    
+	        $(".apply-single-next").click(function(e){
+	            e.preventDefault();
+	            if(applyCurrentPage < applyTotalPages) {
+	                loadApplyPage(applyCurrentPage + 1);
+	            }
+	        });
+	    
+	        $(".apply-double-first").click(function(e){
+	            e.preventDefault();
+	            if(applyCurrentPage !== 1) {
+	                loadApplyPage(1);
+	            }
+	        });
+	    
+	        $(".apply-double-last").click(function(e){
+	            e.preventDefault();
+	            if(applyCurrentPage !== applyTotalPages) {
+	                loadApplyPage(applyTotalPages);
+	            }
+	        });
+	    });
+	    
+	    document.addEventListener('DOMContentLoaded', function(){
+			const mySwiper = new Swiper('.swiper-container', {
+				slidesPerView: 3,
+				spaceBetween: 10,
+			    grid: {
+			        rows: 2,
+			        fill: 'row'
+			    },
+			});
+		});
+	    
+		function channel_del(idx) {
+			if(confirm("채널을 탈퇴하시겠습니까?")){
+				$.ajax({
+					url : "/channel_userDel.do",
+					type : "post",
+					data : {
+						idx : idx
+					},
+					success: function(res) {
+						location.reload();
+					},
+					error: function() {
+						alert("서버에 오류가 발생하였습니다 잠시 후 다시 시도해주세요");
+					}
+				});
+			}
+		}
+	</script>
+</body>
+</html>

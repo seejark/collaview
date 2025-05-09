@@ -1,0 +1,75 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<%@ taglib prefix="fmt" uri="http://java.sun.com/jsp/jstl/fmt"%>
+<!DOCTYPE html>
+
+<div id="modalWrap" class="supportModal">
+	<div class="support-overlay" id="supportOverlay"></div>
+	<div class="modal-support-content" id="reportContent">
+		<div class="modal-title">문의/제안</div>
+		<form id="supportForm" class="supportForm" action="ajax_supportSubmit.do" method="post">
+			<select name="category" class="support-options wrap">
+				<option>문의</option>
+				<option>제안</option>
+			</select>
+			<textarea name="contents" class="support-comment"></textarea>
+			<div class="support-email">
+		        <div class="support-email">
+			    <input type="checkbox" name="email_chk" id="email" class="emailNotify" value="on" />
+			    <label for="email">이메일 알림 설정</label>
+			
+			    <!-- hidden 필드: 체크 안 했을 때 기본값 -->
+			    <input type="hidden" name="email_chk" value="off" />
+			  </div>
+			</div>
+			<div class="modal-buttons">
+				<button type="button" class="btn save" id="btnSupportSubmit">접수</button>
+				<button type="button" class="btn cancel">취소</button>
+		</div>
+		<input type="hidden" name="table" id="table" value="${table}">
+		<input type="hidden" name="page" id="page" value="${page}">
+		<input type="hidden" name="num" id="num" value="${num}">
+		</form>
+	</div>
+</div>
+<script>
+	$(document).ready(function(){
+		$('#btnSupportSubmit').on('click', function(e){
+			e.preventDefault();
+			var $form = $('#supportForm');
+			console.log($form.serialize());
+			$.ajax({
+				url:  $form.attr('action'),
+				type: $form.attr('method'),
+				data: $form.serialize(),
+				success: function(res){
+					if (res === "notLogin") {
+						alert("로그인 후 사용 가능한 기능입니다.");
+						location.href = "/login.do";
+					}
+					else if (res === "success") {
+						alert('신고가 접수되었습니다.');
+						location.reload();
+					}
+					else {
+						alert('서버에 오류가 발생하였습니다. 잠시 후 다시 시도해주세요');
+					}
+				},
+				error: function(xhr, status, err){
+					alert('서버 오류 발생: ' + err);
+				}
+			});
+		});
+	
+		function closeModal(){
+			$('#modalWrap').hide();
+			$('#supportOverlay').hide();
+		}
+		
+		$('.btn.cancel').on('click', closeModal);
+	
+		$('#supportOverlay').on('click', closeModal);
+	
+	});
+</script>

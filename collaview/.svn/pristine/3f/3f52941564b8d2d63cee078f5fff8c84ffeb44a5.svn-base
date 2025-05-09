@@ -1,0 +1,26 @@
+package egovframework.service.impl;
+
+
+import java.util.HashMap;
+import java.util.List;
+
+import org.egovframe.rte.psl.dataaccess.mapper.Mapper;
+
+import egovframework.service.LoginVO;
+
+@Mapper("profileMapper")
+public interface ProfileMapper {
+	HashMap selectUser(Integer idx) throws Exception;
+	
+	List<HashMap> selectUserHistory(Integer idx) throws Exception;
+	
+	List<HashMap> selectUserKeyword(Integer idx) throws Exception;
+	
+	List<HashMap> selectUserArtist(Integer idx) throws Exception;
+	
+	List<HashMap> selectUserCompany(Integer idx) throws Exception;
+	
+    void deleteUser(LoginVO input) throws Exception;
+
+    String selectUserDelDate(LoginVO input) throws Exception;
+}

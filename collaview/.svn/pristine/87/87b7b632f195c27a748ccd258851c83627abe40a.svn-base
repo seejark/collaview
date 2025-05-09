@@ -1,0 +1,445 @@
+package egovframework.web;
+
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Base64;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import org.egovframe.rte.fdl.property.EgovPropertyService;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+import javax.annotation.Resource;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
+import org.springframework.ui.ModelMap;
+import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.support.SessionStatus;
+import org.springframework.web.multipart.MultipartFile;
+import org.springmodules.validation.commons.DefaultBeanValidator;
+
+import egovframework.service.EgovCvService;
+import egovframework.service.LoginResultVO;
+import egovframework.service.LoginVO;
+import egovframework.service.MainBbsVO;
+import egovframework.service.MainInputVO;
+import egovframework.service.MainVideoVO;
+import egovframework.service.ReportsVO;
+import egovframework.service.UserInputVO;
+import egovframework.service.UserVO;
+import egovframework.service.VideoService;
+import egovframework.service.VideoVO;
+
+@Controller
+public class EgovCvController {
+
+	@Resource(name = "egovCvService")
+	private EgovCvService egovCvService;
+
+	/** EgovPropertyService */
+	@Resource(name = "propertiesService")
+	protected EgovPropertyService propertiesService;
+
+	/** Validator */
+	@Resource(name = "beanValidator")
+	protected DefaultBeanValidator beanValidator;
+
+	/** VideoService*/
+	@Resource(name = "videoService")
+	private VideoService videoService;
+
+	@RequestMapping(value = "/login.do")
+	public String login() throws Exception {
+		return "Login";
+	}
+
+	@ResponseBody
+	@RequestMapping(value = "/ajax_login.do")
+	public String loginProcess(@RequestParam HashMap<String, Object> params, HttpSession session, HttpServletResponse response) throws Exception {
+		LoginVO input = new LoginVO();
+		input.setId((String) params.get("id"));
+		input.setPw((String) params.get("pw"));
+		LoginResultVO data = egovCvService.selectUserLogin(input);
+		if(data.getResult() == 1) {
+
+			/* 세션에 로그인 정보 저장 */
+			JSONObject userData = voToJson(egovCvService.selectUser((String) params.get("id")));
+            session.setAttribute("userData", userData);
+
+            // 자동 로그인 설정
+            if (Boolean.parseBoolean((String) params.get("auto_chk"))) {
+                setAutoLoginCookie(response, input.getId());
+            }
+
+			return "success";
+		}else if(data.getResult() != 1 && data.getId_result() == 1) {
+			return "pwError";
+		}else {
+			return "fail";
+		}
+	}
+
+	// 쿠키 저장
+    private void setAutoLoginCookie(HttpServletResponse response, String userId) {
+    	String token = generateSecureToken(userId);
+        Cookie autoLoginCookie = new Cookie("autoLoginToken", token);
+        autoLoginCookie.setMaxAge(60 * 60 * 24 * 60); // 60일 유지
+        autoLoginCookie.setPath("/");
+        autoLoginCookie.setSecure(false); // http에선 false, Https면 true
+        autoLoginCookie.setHttpOnly(true);
+        response.addCookie(autoLoginCookie);
+    }
+
+    private String generateSecureToken(String userId) {
+        return Base64.getEncoder().encodeToString((userId + ":" + UUID.randomUUID().toString()).getBytes());
+    }
+
+
+    // 자동 로그인
+    @ResponseBody
+    @RequestMapping(value = "/ajax_autoLogin.do")
+    public String checkAutoLogin(HttpServletRequest request, HttpServletResponse response, HttpSession session) throws Exception {
+        // 쿠키에서 `autoLoginToken` 찾기
+        Cookie[] cookies = request.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("autoLoginToken".equals(cookie.getName())) {
+                    String token = cookie.getValue();
+                    String userId = extractUserIdFromToken(token);
+
+                    // DB 또는 저장소에서 토큰 검증 (여기서는 가정)
+                    if (userId != null) {
+                        JSONObject userData = voToJson(egovCvService.selectUser(userId));
+
+                        // 자동 로그인 쿠키 만료 시간 연장 (쿠키 재설정)
+                        Cookie autoLoginCookie = new Cookie("autoLoginToken", token);
+                        autoLoginCookie.setMaxAge(60 * 60 * 24 * 60); // 60일 유지
+                        autoLoginCookie.setPath("/");
+                        autoLoginCookie.setSecure(false);
+                        autoLoginCookie.setHttpOnly(true);
+                        response.addCookie(autoLoginCookie); // 쿠키 갱신
+
+                        response.addHeader("Set-Cookie",
+                            "autoLoginToken=" + token
+                            + "; Max-Age=" + autoLoginCookie.getMaxAge()
+                            + "; Path=" + autoLoginCookie.getPath()
+                            + "; HttpOnly=false; SameSite=None");
+
+                        // 세션 생성 후 로그인 유지
+                        session.setAttribute("userData", userData);
+                        return "success";
+                    }
+                }
+            }
+        }
+
+        // 쿠키가 없거나 유효하지 않은 경우
+        return "fail";
+    }
+
+    // cookie token에서 유저 ID 출력
+    private String extractUserIdFromToken(String token) {
+        try {
+            String decoded = new String(Base64.getDecoder().decode(token));
+            return decoded.split(":")[0]; // "userId:UUID" 형태이므로 userId 부분만 추출
+        } catch (Exception e) {
+            return null; // 토큰이 손상되었거나 잘못된 경우 null 반환
+        }
+    }
+
+    // 로그아웃
+    @RequestMapping(value = "/logout.do")
+    public String logoutProcess(HttpServletRequest request, HttpSession session, HttpServletResponse response) {
+        session.invalidate(); // 세션 삭제
+
+        // 쿠키 삭제
+        Cookie autoLoginCookie = new Cookie("autoLoginToken", null);
+        autoLoginCookie.setMaxAge(0);
+        autoLoginCookie.setPath("/");
+        response.addCookie(autoLoginCookie);
+
+        return "redirect:/login.do"; // login.do로 이동
+    }
+
+    // 로그아웃
+    @RequestMapping(value = "/test.do")
+    public String logoutTest(HttpServletRequest request, HttpSession session, HttpServletResponse response) {
+        session.invalidate(); // 세션 삭제
+
+        return "redirect:/login.do"; // login.do로 이동
+    }
+
+
+	@RequestMapping(value = "/index.do")
+	public String main(ModelMap model) throws Exception {
+		
+		VideoVO video = egovCvService.selectFirstVideo();
+		model.addAttribute("video", video);
+		
+		MainInputVO input = new MainInputVO();
+		List<MainVideoVO> list = egovCvService.selectMainVideoNoneUser(input);
+
+        JSONObject data = new JSONObject();
+        JSONArray jsonArray = new JSONArray();
+        for (int i = 0; i < list.size(); i++) {
+            JSONObject jsonObject = voToJson(list.get(i)); // VO 객체를 자동 변환
+        	jsonArray.add(jsonObject);
+        }
+        data.put("videoList", jsonArray);
+
+	    List<MainBbsVO> bbs = egovCvService.selectMainBbsNoneUser(input);
+	    jsonArray = new JSONArray();
+
+	    for (int i = 0; i < bbs.size(); i++) {
+	        JSONObject jsonObject = voToJson(bbs.get(i)); // VO 객체를 JSON으로 변환7
+        	jsonArray.add(jsonObject);
+	    }
+
+	    data.put("bbsList", jsonArray);
+
+		model.addAttribute("result", data);
+
+		return "Main";
+	}
+
+
+	@ResponseBody
+	@RequestMapping(value = "/ajax_mainMore.do")
+	public String mainMore(@RequestParam HashMap<String, Object> params) throws Exception {
+		MainInputVO input = new MainInputVO();
+		input.setVideoIdxList((List<Integer>) objectToList(params.get("videoIdxList")));
+		input.setBbsIdxList((List<Integer>) objectToList(params.get("bbsIdxList")));
+
+	    List<MainVideoVO> list = egovCvService.selectMainVideoNoneUser(input);
+
+	    JSONObject data = new JSONObject();
+	    JSONArray jsonArray1 = new JSONArray();
+	    JSONArray jsonArray2 = new JSONArray();
+
+	    for (int i = 0; i < list.size(); i++) {
+	        JSONObject jsonObject = voToJson(list.get(i)); // VO 객체를 JSON으로 변환
+
+	        if(i < 8) {
+	            jsonArray1.add(jsonObject);
+	        } else {
+	            jsonArray2.add(jsonObject);
+	        }
+	    }
+
+	    data.put("0", jsonArray1);
+	    data.put("2", jsonArray2);
+
+	    List<MainBbsVO> bbs = egovCvService.selectMainBbsNoneUser(input);
+	    JSONArray jsonArray = new JSONArray();
+
+	    for (int i = 0; i < bbs.size(); i++) {
+	        JSONObject jsonObject = voToJson(bbs.get(i)); // VO 객체를 JSON으로 변환7
+        	jsonArray.add(jsonObject);
+	    }
+	    data.put("1", jsonArray);
+
+	    return data.toString();
+	}
+
+
+
+	// 회원가입 페이지
+	@RequestMapping(value = "/signup.do")
+	public String signup() throws Exception {
+		return "Signup";
+	}
+
+	// 아이디 중복확인 프로세스
+	@ResponseBody
+	@RequestMapping(value = "/ajax_idCheck.do")
+	public String idCheckProcess(@RequestParam HashMap<String, Object> params, HttpSession session, HttpServletResponse response) throws Exception {
+		UserVO data = egovCvService.selectUser((String) params.get("id"));
+		if(data == null) {
+			return "success";
+		}else if(data != null){
+			return "cannot";
+		}else {
+			return "fail";
+		}
+	}
+
+	// 회원가입 프로세스
+	@ResponseBody
+	@RequestMapping(value = "/ajax_signup.do")
+	public String signupProcess(UserInputVO input,
+		    @RequestParam("profile") MultipartFile profile, HttpServletRequest request, HttpSession session, HttpServletResponse response) throws Exception {
+
+        System.out.println("input: " + input);
+
+		/* 파일 업로드 - S */
+        String rootFolder = request.getSession().getServletContext().getRealPath("/"); // 현재 작업 디렉토리를 가져옴
+        // (현재 작업 폴더)\collaview\.metadata\.plugins\org.eclipse.wst.server.core\tmp0\wtpwebapps\collaview
+//        String uploadDir = rootFolder + File.separator + "file" + File.separator + "profile"; // 프로젝트 폴더 하위의 "file/profile" 디렉토리를 사용
+        String beforeMetadata = rootFolder.substring(0, rootFolder.indexOf(".metadata"));
+        String uploadDir = beforeMetadata + "collaview" + File.separator + "src" + File.separator + "main" + File.separator + "webapp" + File.separator + "file" + File.separator + "profile";
+        createFolder(uploadDir);
+		
+		String savedName = "";
+        if (!profile.isEmpty()) {
+            String originalName = profile.getOriginalFilename();
+            long unixTimestamp = System.currentTimeMillis() / 1000L;
+            savedName = unixTimestamp + "_" + input.getId() + "_" + originalName;
+
+            File saveFile = new File(uploadDir, savedName);
+            profile.transferTo(saveFile); // 파일 전송
+            
+    		input.setProfile_file(savedName);
+    		input.setProfile_origin(originalName);
+        }
+		/* 파일 업로드 - E */
+		
+		int data = egovCvService.insertUser(input);
+		if(data > 0) {
+			return "success";
+		}else {
+			return "fail";
+		}
+	}
+	
+	@PostMapping("/ajax_reports.do")
+	public String report( Model model, int idx, String table) {
+		model.addAttribute("table", table);
+		model.addAttribute("num", idx);
+		return "reports";
+	}
+	
+	@ResponseBody
+	@PostMapping("/ajax_reportSubmit.do")
+	public String ajax_reportSubmit(HttpServletRequest request, HttpSession session, ReportsVO reportsVO) {
+//		ID NULL값 처리
+		@SuppressWarnings("unchecked")
+		HashMap userData = (HashMap)session.getAttribute("userData");
+		String id = null;
+		if (userData != null && userData.get("id") != null) {
+			id = userData.get("id").toString();
+		}
+		else {
+			return "notLogin";
+		}
+		
+//		신고 page등록을 위해 uri 값 가져오기
+		String referer = request.getHeader("Referer");
+		reportsVO.setPage(referer.substring(referer.lastIndexOf("/")+1));
+		System.out.println("흠 : " + referer.substring(referer.lastIndexOf("/")+1));
+//      신고한 게시물일 경우 신고 불가
+        ReportsVO reportsInfo = videoService.selectReportsCheck(id, reportsVO.getNum());
+        if(reportsInfo != null) {
+        	return "alreadyReports";
+        }
+        
+		int result = egovCvService.insertReports(id, reportsVO);
+		if(result != 1) {
+			return "fail";
+		}
+		else {
+			return "success";
+		}
+	}
+	
+	@GetMapping("/ajax_support.do")
+	public String support(HttpServletRequest request, Model model) {
+//		신고 page등록을 위해 uri 값 가져오기
+		String referer = request.getHeader("Referer");
+		System.out.println("referer : " + referer);
+//		model.addAttribute("table", table);
+//		model.addAttribute("num", idx);
+		return "support";
+	}
+	
+	@ResponseBody
+	@PostMapping("/ajax_supportSubmit.do")
+	public String supportSubmit(HttpServletRequest request, HttpSession session, ReportsVO reportsVO) {
+//		ID NULL값 처리
+		@SuppressWarnings("unchecked")
+		HashMap userData = (HashMap)session.getAttribute("userData");
+		String id = null;
+		if (userData != null && userData.get("id") != null) {
+			id = userData.get("id").toString();
+		}
+		else {
+			return "notLogin";
+		}
+		
+//		신고 page등록을 위해 uri 값 가져오기
+		String referer = request.getHeader("Referer");
+		reportsVO.setPage(referer.substring(referer.lastIndexOf("/")+1));
+		int res = egovCvService.insertReports(id, reportsVO);
+		System.out.println("reportsVO : " + reportsVO);
+		if(res != 1) {
+			return "fail";
+		}
+		else {
+			return "success";
+		}
+	}
+
+	// 업로드 폴더 생성
+	private void createFolder(String uploadDir) {
+		File folder = new File(uploadDir);
+		if (!folder.exists()) {
+		    boolean created = folder.mkdirs();
+		    if (created) {
+		        System.out.println("업로드 폴더 생성됨: " + uploadDir);
+		    } else {
+		        System.out.println("업로드 폴더 생성 실패!");
+		    }
+		}
+	}
+
+
+    // VO 객체를 JSONObject로 자동 변환하는 메서드
+    private JSONObject voToJson(Object vo) {
+        JSONObject jsonObject = new JSONObject();
+        try {
+            for (Field field : vo.getClass().getDeclaredFields()) {
+                field.setAccessible(true); // private 필드 접근 허용
+                jsonObject.put(field.getName(), field.get(vo)); // 키: 필드명, 값: 필드 값
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        return jsonObject;
+    }
+
+    // object 객체를 list 형태로 변환
+    private List<?> objectToList(Object obj){
+        List<Object> resultList = new ArrayList<>();
+
+        if (obj == null) {
+            return resultList; // null이면 빈 리스트 반환
+        }
+
+        if (obj instanceof List<?>) {
+            return (List<?>) obj; // 이미 List<?>이면 그대로 반환
+        } else if (obj instanceof String) {
+            // GET 방식에서 "1,2,3" 형태로 들어왔을 경우 변환
+            return Arrays.asList(((String) obj).split(","));
+        }
+
+        return resultList;
+    }
+}

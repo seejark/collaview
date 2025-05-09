@@ -1,0 +1,164 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="validator" uri="http://www.springmodules.org/tags/commons-validator" %>
+<%@ page import="javax.servlet.http.HttpSession" %>
+<!DOCTYPE html>
+<html>
+<head>
+   	<jsp:include page="/head.jsp"/>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/boardView.css">
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+</head>
+<body>
+   	<jsp:include page="/header.jsp"/>
+
+
+    <div class="container">
+	    <input type="hidden" id="boardIdx" value="${board.idx}"> <!-- 게시글 ID를 숨겨서 저장 -->
+
+        <div class="category">${board.category}</div>
+        
+        <h1 class="post-title">${board.title}</h1>
+
+        <div class="post-header">
+		    <div class="user-info">
+		        <figure class="user-avatar">
+			        <c:if test="${board.uploader_img ne null && board.uploader_img ne ''}">
+				        <c:if test="${board.uploader_type eq 'user'}">
+				        <img src="/file/profile/${board.uploader_img}" alt="${board.uploader}">
+				        </c:if>
+				        <c:if test="${board.uploader_type eq 'channel'}">
+				        <img src="/file/thumbnail/${board.uploader_img}" alt="${board.uploader}">
+				        </c:if>
+			        </c:if>
+		        </figure>
+		        <a href="/profile_detail.do?idx=${board.uploader_idx}" class="user">${board.uploader}</a> <!-- 닉네임 -->
+		        <span class="post-time">${board.register_date}</span> <!-- 작성 시간 -->
+		        <span class="view-count">
+		            <span class="material-symbols-outlined">visibility</span>${board.view} <!-- 조회수 -->
+		        </span>
+		    </div>
+		    <button class="follow-btn claim-btn"><span class="material-symbols-outlined">e911_emergency</span>신고</button>
+		</div>
+		
+		<div class="post-content">
+		    <c:if test="${param.table == 'recruit'}">
+		    <p class="post-date">신청 기간 : ${board.start_date} ~ ${board.end_date}</p>
+		    </c:if>
+		    <p>${board.contents}</p>
+			<c:forEach var="file" items="${fileLIst}">
+			    <figure class="post-image">
+			    	<img src="/file/bbs/${file.file_name}" alt="${file.origin_name}">
+			    </figure>
+			</c:forEach>
+		</div>
+
+
+        <div class="post-actions">
+            <button class="post-like-btn">
+                <span class="material-symbols-outlined">favorite_border</span>
+                좋아요
+            </button>
+
+            <c:if test="${sessionScope.userData ne null && channelList ne null && channelList ne '' && not empty channelList
+            	&& (board.category eq '채용' || board.category eq '밴드모집')}">
+	            <button type="button" class="action-btn applyBtn">신청하기</button>  
+            </c:if>
+            <a href="/board_list.do" class="action-btn" id="list-btn">목록</a>
+        </div>
+	   	<!-- 신고 모달 -->
+		<div id="modalWrap" class="reportModal hidden">
+			<div class="modal-overlay" onclick="closeReportModal()"></div>
+			<div class="modal-report-content" id="reportContent"></div>
+		</div>
+    </div>
+    
+    
+	<c:if test="${sessionScope.userData ne null && channelList ne null && channelList ne '' && not empty channelList
+		&& (board.category eq '채용' || board.category eq '밴드모집')}">
+    <div class="modal applyChannelSelectModal">
+        <div class="modalWrap">
+	        <div class="modalHeader">
+	        	<p class="modalTit">신청할 채널 선택</p>
+	        	<button type="button" class="closeBtn"><span class="material-symbols-rounded">close</span></button>
+	        </div>
+	        <div class="channelList">
+	        	<c:forEach var="channel" items="${channelList}">
+	        	<button type="button" class="channelBtn" data-idx="${channel.idx}">${channel.name}</button>
+	        	</c:forEach>
+        	</div>
+        </div>
+    </div>
+    </c:if>
+
+    <jsp:include page="/footer.jsp"/>
+    
+	
+	<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+	    $(function(){
+  		 // 신고 버튼 클릭 핸들러
+	      $('.claim-btn').on('click', function(){
+
+	        $.ajax({
+	          url: '/ajax_reports.do',
+	          type: 'post',
+	          data: {
+	        	  idx: ${param.idx},
+	        	  table : '${param.table}'
+        	  },
+	          success: function(html){
+	            $('#reportContent').html(html);
+	            $('#modalWrap').removeClass('hidden');
+	          },
+	          error: function(){
+	            alert('신고 내역을 불러오는 데 실패했습니다.');
+	          }
+	        });
+	      });
+	      
+	      
+	      $(".applyBtn").click(function(){
+	    	  $(".applyChannelSelectModal").addClass("on")
+	      })
+	      
+	      $(".channelBtn").click(function(){
+		        $.ajax({
+			          url: '/ajax_recruitApply.do',
+			          type: 'post',
+			          data: {
+			        	  recruit: ${param.idx},
+			        	  channel : $(this).attr("data-idx")
+		        	  },
+			          success: function(result){
+		        		  alert("신청이 정상적으로 성공하였습니다.");
+			        	  /* if(result == "success"){
+			        		  alert("신청이 정상적으로 성공하였습니다.");
+			        	  }else{
+			        		  alert("신청에 실패하였습니다. 다시 시도해주세요.");
+			        	  } */
+			          },
+			          error: function(){
+			            alert('신청 중 서버에서 오류가 발생하여 실패하였습니다. 다시 시도해주세요.');
+			          }
+		        });
+	      })
+	      
+	      $(".closeBtn").click(function(){
+	    	  $(".applyChannelSelectModal").removeClass("on")
+	      })
+	    });
+
+	    // 신고 모달 닫기 함수
+	    function closeReportModal(){
+	      $('#modalWrap').addClass('hidden');
+	    }
+    </script>
+    
+</body>
+</html>

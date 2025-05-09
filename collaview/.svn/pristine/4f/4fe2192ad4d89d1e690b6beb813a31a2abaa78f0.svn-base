@@ -1,0 +1,7 @@
+:root {
+    --red: #E10707;
+    --point: #6D3289;
+    --noneImage: #8e8e8e;
+    --noneProfileImage: #8e8e8e;
+    --noneChannelImage: #8e8e8e;
+}

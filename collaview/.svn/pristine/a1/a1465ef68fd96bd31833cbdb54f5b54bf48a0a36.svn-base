@@ -1,0 +1,202 @@
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+	<jsp:include page="/head.jsp"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
+    <link rel="stylesheet" href="/css/main.css">
+</head>
+<body>
+	<jsp:include page="/header.jsp"/>
+
+    <main class="container" id="container">
+        <div class="visual" onclick="location.href='/video_page.do?idx=${video.video}'">
+            <div class="visual_txt">
+                <span>오늘 가장 핫한 영상!!</span>
+                <p>${video.title}</p>
+            </div>
+            <figure class="visual_img"><img src="/file/video/${video.thumbnail_file}" alt="${video.thumbnail_origin}"/></figure>
+        </div>
+        <div class="contents">
+
+        </div>
+    </main>
+
+	<jsp:include page="/footer.jsp"/>
+
+    <input type="hidden" class="hidden more" value="0">
+
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    <script>
+        var dataList = ${result}; // 받아온 데이터
+
+        var video = (dataList['videoList'] != '' && dataList['videoList'] != undefined) ? true : false; // video 전체 출력됐는지 확인 변수
+        var bbs = (dataList['bbsList'] != '' && dataList['bbsList'] != undefined) ? true : false; // bbs 전체 출력됐는지 확인 변수
+        const swiper = {}; // 동적 변수를 사용하기 위한 리스트
+        function init(){
+            contentMore(0); // 처음이라서 굳이 val가져오지 않고 0을 넣음.
+            autoFitHeight(); // 반응형을 위해 정사각형의 경우에는 height를 맞추도록 하는 함수.
+        }
+        var $addMoreBox; // 더보기에 이용할 전역 변수
+
+        // 콘텐츠 생성 함수. 초기화와 더보기에 이용.
+        function contentMore(cnt){
+            // 다음 번호로 지정하는 것이지만 아래에 배치하면 계속해서 멈추지 않고 스크롤할 때 딜레이 때문에 변경이 제대로 되지 않아 위에 배치
+            $("input.more").val(Number(cnt) + 1);
+
+            
+            console.log("dataList['videoList'] ", dataList['videoList'])
+            console.log("dataList['bbsList']", dataList['bbsList'])
+            
+            $addMoreBox = $('<div class="contentsBox"></div>');
+
+            // 영상 8개 배치
+            if(video) videoLi();
+
+            // 게시글 5개 가로 스크롤 배치
+            if(bbs){
+            	var bbsList = dataList['bbsList'];
+                if(bbsList.length > 0){
+		            var $bbsList = $('<div class="swiper bbsSwiper'+cnt+' bbsList"></div>');
+		            var $bbsWrap = $('<div class="swiper-wrapper"></div>');
+		            for(var i in bbsList){
+		                var item = bbsList[i];
+		                var $bbsSlide = '<div class="swiper-slide bbsBox">'+
+		                        '<a href="#'+item['idx']+'" class="videoBox">'+
+		                        	'<input type="hidden" class="hidden" name="bbsIdx" value="'+item['idx']+'">'+
+		                            '<strong class="bbsBox_tit">['+item['category']+'] '+item['title']+'</strong>'+
+		                            '<div class="bbsBox_content">'+
+		                                '<p class="bbsBox_txt">'+item['contents']+'</p>'+
+		                                '<div class="bbsBox_info">'+
+		                                    '<p class="bbsBox_chat"><span class="material-symbols-outlined">tooltip</span>'+item['chat']+'</p>'+
+		                                    '<p class="bbsBox_view"><span class="material-symbols-outlined">visibility</span>'+item['view']+'</p>'+
+		                                '</div>'+
+		                            '</div>'+
+		                        '</a>'+
+		                    '</div>';
+		                $bbsWrap.append($bbsSlide)   
+		            }
+
+		            if(bbsList.length < 5) bbs = false;
+	
+		            $bbsList.append($bbsWrap)
+		            $bbsList.appendTo($addMoreBox);
+		            
+            	}else{bbs = false;}
+            }
+            
+        	$addMoreBox.appendTo($(".contents"));
+
+            if($bbsList != undefined && $bbsList != null && $bbsList  != ''){
+	            // 스와이퍼의 개수가 무제한이기 때문에 동적 변수를 사용함.
+	            swiper[cnt] = new Swiper('.bbsSwiper'+cnt, {
+	                spaceBetween: 32, // 슬라이드 사이의 거리. 제거하면 화면 깨짐
+	            });
+            }
+        }
+
+        // 영상 8개 배치
+        function videoLi(){
+        	var videoList = dataList["videoList"];
+            if(videoList.length != 0){
+	            var $videoList = $('<div class="videoList"></div>');
+	            for(var i in videoList){
+	                var item = videoList[i];
+	                var $videoLi =
+	                '<div class="videoBox">'+
+                    	/* '<a href="/video_page.do?idx=54">'+ */
+	                    '<a href="/video_page.do?idx='+item['idx']+'">'+
+	                		'<input type="hidden" class="hidden" name="videoIdx" value="'+item['idx']+'">'+
+	                        '<figure class="videoBox_img autoFitHeight" style="height: 171px;">';
+
+					if(item['file_type'] == 'thumb'){
+	                    $videoLi += '<img src="/file/video/'+item['file']+'" alt="'+item['title']+'">'					
+					}else if(item['file_type'] == 'video'){
+	                    $videoLi += '<video src="/file/video/'+item['file']+'"></video>'
+					}
+                  	$videoLi +=
+                  			'</figure>'+
+	                        '<p class="videoBox_tit">'+item['title']+'</p>'+
+	                    '</a>'+
+	                    '<div class="videoBox_ch">'+
+                        	'<a href="/channel_detail.do?idx='+item['channel']+'" class="videoBox_ch_img autoFitHeight" style="height: 32px;"><img src="/file/profile/1745540174_asdfw_image_fx_ (1).jpg" alt="'+item['ch_name']+'"></a>'+
+	                        //'<a href="#'+item['channel']+'" class="videoBox_ch_img autoFitHeight" style="height: 32px;"><img src="/file/img/"'+item['ch_img']+' alt="'+item['ch_name']+'"></a>'+
+	                        '<div class="videoBox_ch_txt">'+
+	                            '<div class="videoBox_ch_tit">'+
+		                            '<a href="/channel_detail.do?idx='+item['channel']+'" class="videoBox_ch_name">'+item['ch_name']+'</a>'+
+	                                //'<a href="#'+item['channel']+'" class="videoBox_ch_name">'+item['ch_name']+'</a>'+
+	                                '<span class="videoBox_ch_level autoFitHeight channelLevel rank'+item['rank']+'" style="height: 14px;">'+item['level']+'</span>'+
+	                            '</div>'+
+	                            '<em class="videoBox_ch_bookmark"><span class="material-symbols-rounded">bookmarks</span>'+item['bookmark']+'</em>'+
+	                        '</div>'+
+	                    '</div>'+
+	                '</div>';
+	                $videoList.append($videoLi)
+	            }
+	            
+	            if(videoList.length < 1) video = false;
+
+	            $videoList.appendTo($addMoreBox);
+            }else{video = false;}
+        }
+
+        function autoFitHeight(){
+            $(".autoFitHeight").each(function (index, item) {
+                var width = $(item).innerWidth();
+                $(item).height(width)
+            });
+        }
+
+        $(function(){
+            init();
+
+            $(window).resize(function(){
+                autoFitHeight();
+
+                bottomMore();
+            })
+
+            $(window).scroll(function(){
+            	bottomMore();
+            })
+        })
+
+        // 페이지 하단인지 확인하고 더보기 실행 함수
+        function bottomMore() {
+            var scrollTop = $(window).scrollTop();
+            var innerHeight = $(window).innerHeight();
+            var scrollHeight = $('body').prop('scrollHeight');
+            if (scrollTop + innerHeight >= scrollHeight && (bbs || video)) {
+                var videoIdxList = [];
+                $("input[name='videoIdx']").each(function() {
+                    videoIdxList.push($(this).val());
+                });
+
+                var bbsIdxList = [];
+                $("input[name='bbsIdx']").each(function() {
+                    bbsIdxList.push($(this).val());
+                });
+
+            	var params = {
+           		    "videoIdxList": videoIdxList.join(","),
+           		    "bbsIdxList": bbsIdxList.join(",")
+            	}
+            	
+            	$.ajax({
+            	    url: "/ajax_mainMore.do",
+            		type : 'POST',
+                    dataType: "json",
+                    data: params,
+            	    success: function(result){
+            	        dataList = result;
+            	    },
+            	    error: function(xhr, status, error){
+            	        console.error("AJAX Error:", error);
+            	        console.error("Server Response:", xhr.responseText); // 서버 응답 확인
+            	    }
+            	});
+            }
+        }
+    </script>
+</body>
+</html>

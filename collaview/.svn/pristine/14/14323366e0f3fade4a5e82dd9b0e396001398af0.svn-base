@@ -1,0 +1,111 @@
+@charset "UTF-8";
+
+body {
+	font-family: "Noto Sans KR-Regular", Helvetica;
+	font-weight: 500;
+}
+
+.modal-container{
+	position: relative;
+	padding: 16px;
+}
+
+.changeOrder-title {
+	margin-bottom: 10px;
+	font-weight: bold;
+}
+
+#sortable .channel{
+	display: flex;
+	padding: 10px;
+}
+
+#sortable .channel-name{
+	font-size: 16px;
+	font-weight: bold;
+	margin-left: 3px;
+	overflow: hidden;
+    display: -webkit-box;
+    text-overflow: ellipsis;
+    word-break: break-all;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+
+#sortable {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+}
+
+.bookmarks{
+	font-size: 18px;
+}
+
+.modal-avatar {
+	overflow: hidden;
+	justify-self: center;
+	width: 30px;
+	height: 30px;
+	border-radius: 30px;
+	margin-right: 3px;
+	margin-bottom: 3px;
+	background: var(--noneChannelImage) no-repeat center/cover;
+}
+
+#sortable li {
+	box-shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.2);
+	margin-bottom: 10px;
+	cursor: move;
+	border-radius: 5px;
+	display: flex;
+	align-items: center;
+}
+
+#sortable .bookmark-wrap{
+	display: flex;
+	align-items: center;
+	color: #bbb;
+}
+
+#sortable .menu{
+	margin-right: 10px;
+	color: #bbb;
+}
+
+.delete:last-child {
+	margin-left: auto;
+	color: #bbb;
+}
+
+.button-group{
+	justify-content: space-between;
+	color: #fff;
+	background-color: #fff;
+	width: 100%;
+	display: flex;
+	gap: 16px;
+	padding: 16px;
+	position: sticky;
+	bottom: 0;
+}
+
+.modalWrap {
+	overflow: auto;
+	padding: 0;
+}
+
+.save{
+	border-radius: 5px;
+	background-color: var(--point);
+	width: 48%;
+	height: 36px;
+}
+
+.cancel{
+	border-radius: 5px;
+	background-color: #333;
+	width: 48%;
+	height: 36px;
+}
+

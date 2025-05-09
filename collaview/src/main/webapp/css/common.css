@@ -1,0 +1,224 @@
+@charset "UTF-8";
+
+@import url("/css/reset.css");
+@import url("/css/root.css");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200");
+@import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200");
+
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@100;300;400;500;700;900&display=swap");
+/* font-family: "Noto Sans KR"; */
+
+*, *:after, *:before {
+    -webkit-tap-highlight-color: transparent;
+    -moz-tap-highlight-color: transparent;
+    -webkit-text-size-adjust: none;
+    -moz-text-size-adjust: none;
+    word-break: keep-all;
+    box-sizing: border-box;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+	color: inherit;
+    text-decoration: none;
+}
+body {font: 16px/1.2 "Noto Sans KR", 'Apple SD Gothic Neo', "돋움", dotum, sans-serif; color: #333; letter-spacing: -0.5px;}
+
+.hidden {overflow: hidden; width: 0; height: 0;
+    font-size: 0; line-height: 0; text-indent: -9999px;
+    position: absolute; left: -9999px;
+}
+
+img {object-fit: cover;}
+
+.tc_red {color: var(--red);}
+.mb10 {margin-bottom: 10px;}
+
+/* btn - S */
+.btn {cursor: pointer;
+	display: block;
+    border-radius: 5px;
+    padding: 8px;
+    font-weight: 700;
+}
+.btn.h40 {height: 40px;}
+.btn.h45 {height: 45px;
+    padding: 0 8px;
+    line-height: 45px;
+}
+.btn.h50 {height: 50px;
+    padding: 0 8px;
+    line-height: 50px;
+}
+.btn.long {width: 100%;
+	text-align: center;
+}
+.btn.bc_point {color: #fff;
+    background-color: var(--point);
+}
+.btn.bc_555 {color: #fff;
+    background-color: #555;
+}
+/* btn - E */
+
+/* checkbox - S */
+.check {display: none;}
+.check + .checkBox {display: block;
+    width: 16px; height: 16px;
+    border: 1px solid #bbb; border-radius: 3px;
+    position: relative;
+
+}
+.check + .checkBox > span {display: none;
+    font-size: 16px; color: #fff;
+    position: absolute; left: -1px; top: -1px;
+}
+.check:checked + .checkBox {border-color: #999; background-color: #999;}
+.check:checked + .checkBox > span {display: block;}
+/* checkbox - E */
+
+/* toggle visible btn and input box - S */
+.toggleVisible.inputBox {overflow: auto;
+    position: relative;
+}
+.toggleVisible.inputBox >input {width: 100%; height: 100%;
+    padding: 0 8px;
+}
+.toggleVisible .visible, .toggleVisible .nonvisible {cursor: pointer;
+    display: flex; align-items: center;
+    height: 100%;
+    position: absolute; right: 9px; top: 0;
+}
+.toggleVisible .visible >span, .toggleVisible .nonvisible >span {font-size: 20px; color: #888;}
+/* toggle visible btn and input box - E */
+
+/* select - S */
+.select {cursor: pointer;
+    position: relative;
+}
+.select.textCenter {text-align: center;}
+.selectBox {display: flex; align-items: center;
+    background-color: #fff;
+    position: relative; z-index: 2;
+}
+.selectText {width: 100%;
+    padding-right: 4px; padding-left: 8px;
+}
+.selectBox >span {flex-shrink: 0;
+    color: #666;
+}
+.selectListWrap {display: none;
+    width: 100%;
+    border: 1px solid #ddd; border-radius: 5px;
+    background-color: #f7f7f7;
+    position: absolute; left: 0; top: 0; z-index: 1;
+}
+.selectList {overflow-y: scroll;
+    width: 100%; max-height: 150px;
+}
+.selectList >li {padding: 4px 8px;
+    color: #777;
+}
+.select.on .selectListWrap {display: block;}
+
+.selectList >li:hover {background-color: #fff; color: #111;}
+/* select - E */
+
+/* auto set width height - S */
+.autoSetWH {overflow: hidden;
+    width: 100%;
+    border-radius: 5px;
+    background-color: #8e8e8e;
+}
+.autoSetWHImg {display: none;
+    width: 100%; height: 100%; object-fit: fill;
+}
+/* auto set width height - E */
+
+
+.channelLevel.rank2 {background-color: #ffd000;}
+.channelLevel.rank1 {background-color: #b5bbc2;}
+.channelLevel.rank0 {background-color: #725a4a;}
+
+
+
+/* modal - S */
+.modal {display: none;
+    width: 100%; height: 100%;
+    padding: 16px;
+    background-color: rgba(0, 0, 0, 0.5);
+    position: fixed; left: 0; right: 0; top: 0; z-index: 1000000;
+}
+.modal.on {display: block;}
+.modalWrap {width: calc(100% - 32px); height: fit-content; max-height: 500px; margin: auto;
+    border-radius: 5px;
+    padding: 16px;
+    background-color: #fff;
+    position: absolute; left: 0; right: 0; top: 0; bottom: 0;
+}
+/* modal - E */
+
+/***********
+ HEADER - S
+***********/
+.header {display: flex; justify-content: space-between; align-items: center;
+    width: 100%; padding: 16px;
+    background-color: #fff;
+    position: fixed; left: 0; right: 0; top: 0; z-index: 100000;
+}
+.header .btn_left {flex-shrink: 0; display: flex; width: 100px;}
+.header .alarm {cursor: pointer;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    width: 24px; height: 24px;
+}
+.header .btn_right {flex-shrink: 0;
+    display: flex; justify-content: right;
+    width: 100px;
+}
+.header .btn_right >figure {cursor: pointer;}
+.header .btn_right .more {margin-left: 10px;
+    position: relative;
+}
+.moreList {box-shadow: 0 0 5px 1px rgba(0, 0, 0, 0.2);
+    display: none;
+    width: 130px;
+    padding: 5px 0;
+    border-radius: 5px;
+    background-color: #fff;
+    position: absolute; right: 0; top: 30px;
+}
+.more.on span {color: var(--point);}
+.more.on .moreList {display: block;}
+.moreList >li {
+    padding: 0 10px;
+    line-height: 2rem;
+}
+.moreList >li >a {display: block;}
+
+.header .btn_left >figure:hover >span {color: var(--point);}
+.header .btn_right >figure:hover >span {color: var(--point);}
+.moreList >li:hover {background-color: #ddd;}
+/***********
+ HEADER - E
+***********/
+
+
+/***********
+ FOOTER - S
+***********/
+.footer {box-shadow: 0 0 10px 3px rgba(0, 0, 0, 0.2);
+    display: flex; justify-content: space-around; align-items: center;
+    width: 100%; height: 60px;
+    background-color: #fff;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 100000;
+}
+.footer_menu {display: block; flex-shrink: 0;
+    width: 52px;
+    font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    text-align: center;
+}
+.footer_menu.on {color: var(--point);}
+.footer_menu >p {font-size: 0.9rem;}
+
+.footer_menu:hover {color: var(--point);}
+/***********
+ FOOTER - E
+***********/

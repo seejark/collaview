@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.service.impl.ProfileMapper">
+
+<select id="selectUser" parameterType="java.lang.Integer" resultType="java.util.HashMap">
+SELECT u.idx, u.id, u.`name`, u.nick, u.phone, u.birth, u.email, u.company_chk, u.artist_chk, u.profile_file, u.profile_origin,
+	u.terms_chk, u.privacy_chk, u.register_date, u.modify_date,
+	AVG(ua.score) AS score
+FROM `user` u
+LEFT JOIN user_attitude ua ON ua.target = u.id
+WHERE u.idx = #{idx} AND u.hidden_date IS NULL AND u.del_date IS NULL
+GROUP BY u.idx
+</select>
+
+<select id="selectUserHistory" parameterType="java.lang.Integer" resultType="java.util.HashMap">
+SELECT *
+FROM `user_history`
+WHERE `user` = (SELECT id FROM `user` WHERE idx = #{idx})
+</select>
+
+<select id="selectUserKeyword" parameterType="java.lang.Integer" resultType="java.util.HashMap">
+SELECT *
+FROM `user_keyword`
+WHERE `user` = (SELECT id FROM `user` WHERE idx = #{idx})
+</select>
+
+<select id="selectUserCompany" parameterType="java.lang.Integer" resultType="java.util.HashMap">
+SELECT idx, `user`, company, CONCAT(region1, ' ', region2, ' ', region_etc) AS company_addr
+FROM `user_company`
+WHERE `user` = (SELECT id FROM `user` WHERE idx = #{idx})
+</select>
+
+<select id="selectUserArtist" parameterType="java.lang.Integer" resultType="java.util.HashMap">
+SELECT idx, `user`, email_ok, CONCAT(region1, ' ', region2, ' ', region_etc) AS addr, position, category
+FROM `user_artist`
+WHERE `user` = (SELECT id FROM `user` WHERE idx = #{idx})
+</select>
+
+<update id="deleteUser" parameterType="egovframework.service.LoginVO">
+UPDATE `user`
+SET del_date = NOW()
+WHERE id = #{id} AND pw = SHA2(#{pw}, 256)
+</update>
+
+<select id="selectUserDelDate" parameterType="egovframework.service.LoginVO" resultType="java.lang.String">
+SELECT del_date
+FROM `user`
+WHERE id = #{id} AND pw = SHA2(#{pw}, 256)
+</select>
+
+</mapper>

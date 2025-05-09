@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.service.impl.EgovCvMapper">
+
+<select id="selectUserLogin" parameterType="egovframework.service.LoginVO" resultType="egovframework.service.LoginResultVO">
+SELECT COUNT(*) AS result, (SELECT COUNT(*) FROM `user` WHERE id = #{id}) AS id_result
+FROM `user`
+WHERE id = #{id} AND pw = SHA2(#{pw}, 256) AND hidden_date IS NULL AND del_date IS NULL
+</select>
+
+<select id="selectUser" parameterType="java.lang.String" resultType="egovframework.service.UserVO">
+SELECT *
+FROM `user`
+WHERE id = #{id} AND hidden_date IS NULL AND del_date IS NULL
+</select>
+
+<select id="selectMainVideoNoneUser" parameterType="egovframework.service.MainInputVO" resultType="egovframework.service.MainVideoVO">
+WITH ranked_videos_artist AS (
+			SELECT
+				cv.*, vc.ch_name, vc.`level`, vc.`rank`, vc.bookmark_cnt AS bookmark,
+				(CASE WHEN cv.thumbnail_file IS NOT NULL THEN 'thumb' ELSE 'video' END) AS `file_type`,
+				(CASE WHEN cv.thumbnail_file IS NOT NULL THEN cv.thumbnail_file
+					ELSE (SELECT file_name FROM `file` f WHERE cv.idx = f.num AND f.`table` = 'ch_video' AND f.`user` = vc.`user` ORDER BY f.register_date LIMIT 1)
+				END) AS `file`,
+				RAND() * 0.3 AS weight
+			FROM ch_video cv
+			LEFT JOIN view_channel vc ON vc.`channel` = cv.`channel`
+			LEFT JOIN `file` f ON cv.idx = f.num AND f.`table` = 'ch_video' AND f.`user` = vc.`user`
+			WHERE cv.`status` = '게시' AND f.del_date IS NULL
+			ORDER BY weight
+		)
+		SELECT
+		  idx, title, file_type, `file`, `channel`, ch_name, `level`, `rank`, bookmark
+		FROM ranked_videos_artist v
+			<if test="videoIdxList != null and videoIdxList != ''">
+				WHERE idx NOT IN
+		        <foreach item="videoIdx" collection="videoIdxList" open="(" separator="," close=")">
+		            #{videoIdx}
+		        </foreach>
+			</if>
+		ORDER BY weight DESC
+		LIMIT 16
+</select>
+
+<select id="selectMainBbsNoneUser" parameterType="egovframework.service.MainInputVO" resultType="egovframework.service.MainBbsVO">
+SELECT b.idx, b.category, b.title, b.contents, b.`view`, COUNT(bc.idx) AS chat
+FROM board b
+LEFT JOIN board_chat bc ON bc.`board` = b.idx AND bc.del_date IS NULL AND bc.hidden_date IS NULL
+WHERE b.del_date IS NULL AND b.hidden_date IS NULL
+			<if test="videoIdxList != null and videoIdxList != ''">
+				AND b.idx NOT IN
+		        <foreach item="bbsIdx" collection="bbsIdxList" open="(" separator="," close=")">
+		            #{bbsIdx}
+		        </foreach>
+			</if>
+GROUP BY b.idx
+ORDER BY LOG(1 + b.`view`) * RAND() DESC
+LIMIT 5
+</select>
+
+<select id="selectFirstVideo">
+	select vc.*
+	from view_ch_video vc
+	group by vc.video
+	order by vc.view desc
+	limit 1;
+</select>
+
+
+<insert id="insertUser">
+INSERT INTO `user` (
+    id,
+    pw,
+    name,
+    nick,
+    phone,
+    birth,
+    email,
+    <if test="profile_file != null and profile_file != ''">
+		profile_file,
+		profile_origin,
+	</if>
+    register_date
+) VALUES (
+    #{id},
+    SHA2(#{pw}, 256),
+    #{name},
+    #{nick},
+    #{phone},
+    #{birth},
+    #{email},
+    <if test="profile_file != null and profile_file != ''">
+		#{profile_file},
+		#{profile_origin},
+	</if>
+    NOW()
+)
+</insert>
+
+<insert id="insertReports">
+	insert into reports value(default, #{reportsVO.category}, #{reportsVO.page}, #{reportsVO.table}, #{reportsVO.num}, #{reportsVO.user}, #{reportsVO.contents}, default, #{reportsVO.email_chk}, default, default)
+</insert>
+
+<insert id="insertFile">
+	insert into file value(default, #{fileVO.table}, #{fileVO.num}, #{fileVO.file_name}, #{fileVO.origin_name}, #{fileVO.user}, default, default)
+</insert>
+</mapper>

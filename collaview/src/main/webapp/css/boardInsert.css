@@ -1,0 +1,74 @@
+@charset "UTF-8";
+
+.container {
+    padding: 70px 16px 76px 16px;
+}
+
+input[type='text'] {
+    padding: 8px;
+    font-family: inherit; font-size: 0.9rem;
+}
+textarea {
+    padding: 8px;
+    font-family: inherit; font-size: 0.9rem;
+}
+.input {padding-bottom: 16px;}
+.inputTit {margin-bottom: 5px;
+    font-weight: 600;
+}
+.inputBox {width: 100%; height: 40px;
+    border: 1px solid #ddd; border-radius: 5px;
+}
+.selectListWrap {padding-top: 40px;}
+
+/* span list - S */
+.spanTag {display: block;}
+.spanItem {margin-bottom: 3px;}
+.spanList {width: 100%;
+    font-size: 0.8rem; color: #999;
+    padding-left: 8px;
+}
+.spanList >li {position: relative;}
+.spanList >li::after {content: "*";
+    position: absolute; left: -6px; top: 3px;
+}
+/* span list - E */
+
+.txtBox {min-height: 200px;}
+
+.dateWrap {display: flex; justify-content: center; align-items: center; gap: 8px;}
+.dateWrap input {
+    padding: 8px;
+    font-family: inherit; font-size: inhe0.9remrit;
+}
+.dateWrap >span {color: #999;}
+
+.recruitOn {display: none;}
+.recruitOn.on {display: block;}
+
+.file .inputBox {overflow: hidden;
+    display: block;
+    width: 100%;
+	padding: 10px 8px;
+	font-weight: 400; font-size: 0.875rem; line-height: 20px; color: #555555;
+	text-overflow: ellipsis; white-space: nowrap;
+    background-color: #eee;
+}
+
+.fileList >div {display: flex; justify-content: center; gap: 5px;
+    margin-bottom: 8px;
+}
+.fileList >div:last-child {margin-bottom: 0;}
+.addFile, .removeFile {flex-shrink: 0;
+    width: 40px;
+    padding: 0;
+}
+.addFile::after, .removeFile::after {
+    font-family: "Material symbols rounded";
+    font-weight: 400; font-size: 24px; line-height: 40px;
+}
+.addFile::after {content: "add";}
+.removeFile::after {content: "remove";}
+
+
+.btn_wrap {display: flex; gap: 8px;}

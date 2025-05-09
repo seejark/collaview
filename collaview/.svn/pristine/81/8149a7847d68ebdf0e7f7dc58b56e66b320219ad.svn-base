@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.service.impl.VideoMapper">
+
+	<!-- select -->
+	<select id="selectKeywordList" resultType="egovframework.service.KeywordVO">
+		select * from keyword
+	</select>
+	
+	<select id="selectVideoIdx" resultType="int">
+		select idx from ch_video order by idx desc limit 1;
+	</select>
+	
+	<select id="selectKeywordIdx" resultType="int">
+		select idx from keyword where name = #{keyword};
+	</select>
+	
+	<select id="selectMyKeywordList" resultType="egovframework.service.KeywordVO">
+		select k.* from ch_video_keyword vk, keyword k where vk.video = #{idx} and k.idx = vk.keyword;
+	</select>
+	
+	<select id="selectVideoInfo" resultType="egovframework.service.VideoVO">
+		select vcv.video as idx, vcv.*, cv.people_cnt from view_ch_video vcv, ch_video cv where vcv.video = #{idx} and cv.idx = #{idx} 
+	</select>
+	
+	<select id="selectFileList" resultType="egovframework.service.FileVO">
+		select * from file f where f.num = #{idx} and f.table = #{table}
+	</select>
+	
+	<select id="selectMainVideoNoneUser" parameterType="egovframework.service.MainInputVO" resultType="egovframework.service.MainVideoVO">
+	WITH ranked_videos_artist AS (
+				SELECT
+					cv.*, vc.ch_name, vc.`level`, vc.`rank`, vc.bookmark_cnt AS bookmark,
+					(CASE WHEN cv.thumbnail_file IS NOT NULL THEN 'thumb' ELSE 'video' END) AS `file_type`,
+					(CASE WHEN cv.thumbnail_file IS NOT NULL THEN cv.thumbnail_file
+						ELSE (SELECT file_name FROM `file` f WHERE cv.idx = f.num AND f.`table` = 'ch_video' AND f.`user` = vc.`user` ORDER BY f.register_date LIMIT 1)
+					END) AS `file`,
+					RAND() * 0.3 AS weight
+				FROM ch_video cv
+				LEFT JOIN view_channel vc ON vc.`channel` = cv.`channel`
+				LEFT JOIN `file` f ON cv.idx = f.num AND f.`table` = 'ch_video' AND f.`user` = vc.`user`
+				WHERE cv.`status` = '게시' AND f.del_date IS NULL
+				ORDER BY weight
+			)
+			SELECT
+			  idx, title, file_type, `file`, `channel`, ch_name, `level`, `rank`, bookmark
+			FROM ranked_videos_artist v
+				<if test="videoIdxList != null and videoIdxList != ''">
+					WHERE idx NOT IN
+			        <foreach item="videoIdx" collection="videoIdxList" open="(" separator="," close=")">
+			            #{videoIdx}
+			        </foreach>
+				</if>
+			ORDER BY weight DESC
+			LIMIT 16
+	</select>
+	
+	<select id="selectEmsembleDuplication" resultType="egovframework.service.UserVO">
+		select f.* from file f where f.num = #{num} and f.table = #{table} and f.user = #{id};
+	</select>
+	
+	<select id="selectRatingCheck" resultType="egovframework.service.UserVO">
+		select * from ch_video_rating where video = #{idx} and user = #{id}
+	</select>
+	
+	<select id="selectVideoView" resultType="egovframework.service.VideoVO">
+		select * from ch_video_view where ip = #{ip} and video = #{idx} order by register_date desc limit 1;
+	</select>
+	
+	<select id="selectReportsCheck" resultType="egovframework.service.ReportsVO">
+		select * from reports where user = #{id} and num = #{idx} limit 1;
+	</select>
+	
+	<!-- insert -->
+	<insert id="insertVideo" parameterType="egovframework.service.VideoVO" useGeneratedKeys="true" keyProperty="idx" keyColumn="idx">
+		insert into ch_video values (default, #{videoVO.category}, #{videoVO.channel}, #{videoVO.title}, #{videoVO.contents}, default, #{videoVO.thumbnail_file}, #{videoVO.thumbnail_origin}, #{videoVO.people_cnt}, default, default, default, default)
+	</insert>
+	
+	<insert id="insertFile">
+		insert into file values (default, #{table}, #{videoIdx}, #{file_name}, #{origin_name}, #{id}, default, default)
+	</insert>
+	
+	<insert id="insertKeyword">
+		insert into ch_video_keyword values (default, #{videoIdx}, #{keywordIdx}, default, default)
+	</insert>
+	
+	<insert id="insertRating">
+		insert into ch_video_rating values (default, #{id}, #{idx}, #{skill}, #{manner}, #{charisma}, #{perform}, default, default);
+	</insert>
+	
+	<insert id="insertView">
+		insert into ch_video_view values (default, #{id}, #{ip}, #{idx}, default);
+	</insert>
+</mapper>

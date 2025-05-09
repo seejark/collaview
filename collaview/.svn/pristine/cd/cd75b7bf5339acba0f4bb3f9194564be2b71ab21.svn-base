@@ -1,0 +1,84 @@
+@charset "UTF-8";
+
+body {
+	font-family: "Noto Sans KR";
+	font-weight: 500;
+}
+
+.modal-report-content{
+	box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+	width: calc(100% - 32px); height: fit-content;
+	margin-top: 50%;
+	padding: 20px;
+	background: #fff;
+	position: relative;
+	z-index: 1001;
+	border-radius: 8px;
+	justify-self: center;
+}
+
+.report-options label, .report-other label {
+	display: flex;
+	margin-bottom: 12px;
+	font-size: 12px;
+	line-height: 14px;
+	letter-spacing: -0.05em;
+	cursor: pointer;
+}
+
+.report-options input[type="radio"], .report-other input[type="radio"] {
+	width: 16px;
+	height: 16px;
+	margin: 0;
+	margin-right: 8px;
+}
+
+.reportForm input[type="radio"]:checked {
+	accent-color: #555555;
+}
+
+.report-other {
+	margin-bottom: 10px;
+}
+
+.other{
+	margin-bottom: 5px;
+}
+
+.report-other input[type="text"] {
+	width: 93%;
+	margin-left: 7%;
+	padding: 6px;
+	border: 1px solid #ccc;
+	box-sizing: border-box;
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.report-email {
+	display: flex;
+	align-items: center;
+	margin-bottom: 8px;
+}
+
+.report-email label {
+	font-size: 12px;
+	cursor: pointer;
+}
+
+.report-email input[type="checkbox"] {
+	margin-right: 6px;
+}
+
+.emailNotify {
+	align-items: center;
+	width: 1rem;
+	height: 1rem;
+	margin-right: 0px;
+	margin-left: 0px;
+	border-radius: 2px;
+}
+
+.emailNotify:checked {
+	accent-color: #555555;
+}

@@ -1,0 +1,17 @@
+package egovframework.service;
+
+import java.time.LocalDateTime;
+
+import lombok.Data;
+
+@Data
+public class FileVO {
+	private Integer idx;                
+    private String table;               
+    private int num;             
+    private String file_name;               
+    private String origin_name;               
+    private String user;
+    private LocalDateTime register_date;
+    private LocalDateTime del_date;
+}

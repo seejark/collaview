@@ -1,0 +1,43 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page import="javax.servlet.http.HttpSession" %>
+<%@ page import="java.net.URLDecoder" %>
+
+
+<%
+    HttpSession sessionObj = request.getSession(false);
+    boolean isLoggedIn = (sessionObj != null && sessionObj.getAttribute("userData") != null);
+    if(isLoggedIn){
+	    request.setAttribute("myChannel", "/channel_list.do");
+    }else{
+	    request.setAttribute("myChannel", "/channel_setting.do");
+    }
+%>
+
+    
+    <footer class="footer" id="footer">
+        <a href="/channel_chartList.do" class="footer_menu ranking">
+            <span class="material-symbols-outlined">crown</span>
+            <p>랭킹</p>
+        </a>
+        <a href="board_list.do" class="footer_menu board">
+            <span class="material-symbols-outlined">assignment</span>
+            <p>게시판</p>
+        </a>
+        <a href="/index.do" class="footer_menu main">
+            <span class="material-symbols-outlined">home</span>
+            <p>메인</p>
+        </a>
+
+        <a href="<c:url value='${myChannel}'/>" class="footer_menu myChannel">
+            <span class="material-symbols-outlined">person</span>
+            <p>내 채널</p>
+        </a>
+        <a href="/channel_bookmarkList.do" class="footer_menu bookmarks">
+            <span class="material-symbols-outlined">bookmark_heart</span>
+            <p>즐겨찾기</p>
+        </a>
+    </footer>
+   
+    <script src="/js/common.js"></script>

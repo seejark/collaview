@@ -1,0 +1,141 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+	pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<!DOCTYPE html>
+<html>
+<head>
+<jsp:include page="/head.jsp" />
+<link rel="stylesheet" href="/css/channel_chartList.css">
+</head>
+<body>
+	<jsp:include page="/header.jsp" />
+	<main class="container" id="container">
+		<div class="toggleSelect">
+			<div class="channel-select">채널</div>
+			<div class="video-select">영상</div>
+		</div>
+		<div class="chart-list">
+			<c:set var="currentPage" value="${param.page != null ? param.page : 1}" />
+			<c:set var="pageSize" value="10" />
+			<c:set var="offset" value="${(currentPage - 1) * pageSize}" />
+			<c:forEach var="chart" items="${chartList}" varStatus="st">
+				<div class="chart-item wrap" onclick="location.href='/channel_detail.do?idx=${chart.channel}'">
+					<div class="chart-item_left">
+						<div class="rank">${offset + st.count}</div>
+						<div class=avatar></div>
+					</div>
+
+					<div class="chart-item_right">
+						<div class="chart-item_channel">
+							<span class="channel-name">${chart.ch_name}</span>
+							<div class="avatar-small"></div>
+						</div>
+
+						<div class="chart-item-key">@${chart.key}</div>
+
+						<div class="chart-item__favorites">
+							<span class="material-symbols-outlined">bookmarks</span>
+							<span class="bookmark">${chart.bookmark_cnt}</span>
+						</div>
+						<div class="chart-item-bottom">
+							<div class="chart-item__members">채널 멤버:${chart.user}
+								<c:if test="${!empty chart.member}">,</c:if>
+								${chart.member}
+							</div>
+							<div class="chart-item__last-upload">마지막 영상 등록일: ${chart.last_upload}</div>
+						</div>
+					</div>
+				</div>
+			</c:forEach>
+		</div>
+	</main>
+	<jsp:include page="/footer.jsp" />
+	<script>
+		var currentType = "channel";
+		var currentPage = 1;
+		var isLoading = false;
+		var hasMoreItems = true;
+		
+		$(".channel-select").addClass('selected');
+		
+		function loadMoreItems() {
+			if(isLoading || !hasMoreItems) return;
+			isLoading = true;
+			currentPage++;
+			
+			var url = currentType === "channel" ? "/channel_loadChartChannel.do" : "/channel_loadChartVideo.do";
+			
+			$.ajax({
+				url: url,
+				method: "post",
+				data: { page: currentPage },
+				success: function(html) {
+				if($.trim(html) === ""){
+					hasMoreItems = false;
+				} else {
+					$(".chart-list").append(html);
+				}
+					isLoading = false;
+				},
+				error: function(xhr, status, error) {
+					console.error("Error loading items:", error);
+					isLoading = false;
+				}
+			});
+		}
+		
+		$(window).scroll(function() {
+			if($(window).scrollTop() + $(window).height() >= $(document).height() - 100){
+				loadMoreItems();
+			}
+		});
+		
+		$(".channel-select").click(function(){
+			if(currentType !== "channel"){
+				currentType = "channel";
+				currentPage = 1;
+				hasMoreItems = true;
+				$(".chart-list").empty();
+				
+				$.ajax({
+					url: "/channel_loadChartChannel.do",
+					method: "post",
+					data: { page: currentPage },
+					success: function(html){
+						$(".chart-list").html(html);
+					},
+					error: function(xhr, status, error){
+						console.error("Error switching to channel:", error);
+					}
+				});
+			}
+			$(".channel-select").addClass('selected');
+			$(".video-select").removeClass('selected');
+		});
+		
+		$(".video-select").click(function(){
+			if(currentType !== "video"){
+				currentType = "video";
+				currentPage = 1;
+				hasMoreItems = true;
+				$(".chart-list").empty();
+				
+				$.ajax({
+					url: "/channel_loadChartVideo.do",
+					method: "post",
+					data: { page: currentPage },
+					success: function(html){
+						$(".chart-list").html(html);
+					},
+					error: function(xhr, status, error){
+						console.error("Error switching to video:", error);
+					}
+				});
+			}
+			$(".video-select").addClass('selected');
+			$(".channel-select").removeClass('selected');
+		});
+	</script>
+</body>
+</html>

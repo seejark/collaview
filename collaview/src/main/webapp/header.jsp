@@ -1,0 +1,59 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<%@ page import="javax.servlet.http.HttpSession" %>
+<%@ page import="java.net.URLDecoder" %>
+
+
+<%
+    HttpSession sessionObj = request.getSession(false);
+    boolean isLoggedIn = (sessionObj != null && sessionObj.getAttribute("userData") != null);
+    request.setAttribute("isLoggedIn", isLoggedIn);
+%>
+    
+    <header class="header" id="header">
+        <div class="btn_left">
+            <figure class="alarm"><span class="material-symbols-rounded">notifications</span></figure>
+        </div>
+        <a href="/index.do" class="logo"><img src="/images/logo_s.png" alt="콜라뷰"></a>
+        <div class="btn_right">
+            <figure class="search"><span class="material-symbols-rounded">search</span></figure>
+            <figure class="more"><span class="material-symbols-rounded">more_vert</span>
+                <ul class="moreList">
+               		<c:if test="${!isLoggedIn}">
+				    <li><a href="/signup.do">회원가입</a></li>
+				    <li><a href="/login.do">로그인</a></li>
+					</c:if>
+               		<c:if test="${isLoggedIn}">
+                    <li><a href="/profileView.do?idx=${userData.idx}">프로필</a></li>
+				    <li><a href="/logout.do">로그아웃</a></li>
+					</c:if>
+                    <li><a href="#" class="supportBtn">문의/제안</a></li>
+                </ul>
+            </figure>
+        </div>
+    </header>
+	<div id="modalContent"></div>
+	<script src="/path/to/jquery.min.js"></script>  <!-- 이미 로드되어 있으면 생략 -->
+	<script>
+		$(function(){
+			$('.supportBtn').on('click', function(e){
+				e.preventDefault();
+				$.get('/ajax_support.do').done(function(html){
+					$('#modalContent').html(html);
+					$('#modalWrap').removeClass('hidden');
+				}).fail(function(){
+					alert('모달을 불러오는 데 실패했습니다.');
+				});
+			});
+			
+			$('.btn.cancel').on('click', closeModal);
+		
+		    $('#supportOverlay').on('click', closeModal);
+		
+		    function closeModal(){
+		      $('#modalWrap').hide();
+		      $('#supportOverlay').hide();
+		    }
+		});
+	</script>

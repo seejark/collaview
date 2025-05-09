@@ -1,0 +1,67 @@
+@charset "UTF-8";
+
+body {
+	font-family: "Noto Sans KR-Regular", Helvetica;
+	font-weight: 500;
+}
+
+.modal-container{
+	padding: 16px;
+	position: relative;
+}
+
+.modalWrap {
+	overflow: auto;
+	padding: 0;
+}
+
+.selectKeyword-wrap{
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-bottom: 16px;
+}
+
+.keywordEdit-title {
+	margin-bottom: 8px;
+	font-weight: bold;
+}
+
+.search-wrap{
+	display: flex;
+	gap: 8px;
+	margin-bottom:8px;
+}
+
+.searchKeyword{
+	width: 100%;
+	height: 40px;
+	border: 1px solid #ddd;
+	border-radius: 5px;
+}
+
+
+.selected-keyword{
+	padding: 12px 15px;
+	border: 1px solid #555;
+	color: #fff;
+	font-size: 14px;
+	background-color: #555;
+	border-radius: 5px;
+}
+
+.search-wrap .material-symbols-rounded{
+	align-content: center;
+	padding: 8px;
+	color: #fff;
+	background-color: #333;
+	border-radius: 5px;
+}
+
+.keywordWrap{
+	overflow: scroll;
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+	height: 300px;
+}

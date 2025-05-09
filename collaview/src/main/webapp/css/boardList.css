@@ -1,0 +1,101 @@
+@charset "UTF-8";
+
+.container {width: 100%;
+    padding: 70px 16px 100px;
+}
+
+.toolbar {display: flex; gap: 8px; margin-bottom: 10px;}
+.toolbar .select .inputBox {width: 90px; height: 40px;
+    border: 1px solid #ddd; border-radius: 5px;
+}
+.toolbar .select .selectListWrap {padding-top: 40px;}
+.toolbar .search {width: 100%; height: 40px;
+    border: 1px solid #ddd; border-radius: 5px;
+    padding-left: 35px;
+    position: relative;
+}
+.toolbar .search::after {content: "search";
+    width: 30px; height: 30px;
+    font-family: 'Material Symbols Rounded'; font-size: 26px; color: #999;
+    position: absolute; left: 7px; top: 6px;
+}
+.toolbar .search input {width: 100%; height: 38px;
+    outline: none;
+}
+.toolbar .btn.write {
+    width: 40px;
+}
+
+.dataTable {display: block;}
+.dataTable >thead {}
+.dataTable >thead >tr {}
+.dataTable >thead >tr >td {}
+.dataTable >tbody {display: block;}
+.dataTable >tbody >tr {display: flex; flex-direction: column;
+    width: 100%;
+    margin-bottom: 10px;
+    border-bottom: 1px solid #ddd;
+    position: relative;
+}
+.dataTable >tbody >tr.border0 {border: 0;}
+.dataTable >tbody >tr >td {width: calc(100% - 130px);}
+.dataTable >tbody >tr >td.width100P {width: 100%;}
+.dataTable .sort {display: none;}
+.dataTable .category {width: fit-content;
+    margin-bottom: 5px;
+    border-radius: 3px;
+    padding: 5px 8px;
+    font-size: 0.8rem; text-align: center;
+    background-color: #eee;
+}
+.dataTable .title {overflow: hidden;
+    margin-bottom: 5px;
+    font-weight: 600; font-size: 1.1rem; text-overflow: ellipsis; white-space: nowrap; word-break: break-all;
+}
+.dataTable .contents {overflow: hidden;
+    display: -webkit-box;
+    margin-bottom: 16px;
+    font-size: 0.9rem; text-overflow: ellipsis; word-break: break-all;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+.dataTable .user {margin-bottom: 5px;}
+.dataTable .user >a {display: flex; align-items: center;}
+.dataTable .user .img {flex-shrink: 0;
+    width: 20px; height: 20px;
+    margin-right: 5px;
+    border-radius: 50%;
+    background: var(--noneProfileImage) no-repeat center/cover;
+}
+.dataTable .user .name {overflow: hidden;
+    width: fit-content; max-width: 100%;
+    font-weight: 500; font-size: 0.9rem; color: #333; text-overflow: ellipsis; white-space: nowrap;
+}
+.dataTable .sub {display: flex; align-items: center;
+    margin-bottom: 8px;
+    font-size: 0.8rem; color: #777;
+    gap: 8px;
+}
+.dataTable .sub >p {display: flex; align-items: center;}
+.dataTable .sub .date {flex-shrink: 0;
+    width: fit-content;
+}
+.dataTable .sub .view {flex-shrink: 0;
+    width: fit-content;
+}
+.dataTable .sub .chat {flex-shrink: 0;
+    width: fit-content;}
+.dataTable .sub .icon {margin-right: 5px;
+    font-size: 22px; color: #888;
+}
+.dataTable .img >p {width: 120px; height: 120px; margin: auto;
+    border-radius: 5px;
+    background: #ddd no-repeat center/cover;
+    position: absolute; right: 0; top: -8px; bottom: 0;
+}
+.dataTable .noImg {display: none;}
+table.dataTable >tbody >tr >th, table.dataTable >tbody >tr >td {padding: 0;}
+div.dt-container.dt-empty-footer tbody>tr:last-child>* {border: 0;}
+div.dt-container div.dt-layout-row {margin: 0;}
+
+.dataTable >tbody >tr >td.dt-empty {width: 100%;}

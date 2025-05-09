@@ -1,0 +1,156 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ taglib prefix="ui" uri="http://egovframework.gov/ctl/ui"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="validator" uri="http://www.springmodules.org/tags/commons-validator" %>
+<!DOCTYPE html>
+<html>
+<head>
+   	<jsp:include page="/head.jsp"/>
+    <link rel="stylesheet" href="/css/common.css">
+    <link rel="stylesheet" href="/css/boardView.css">
+
+</head>
+<body>
+   	<jsp:include page="/header.jsp"/>
+
+
+    <div class="container">
+        <div class="category">${board.category}</div>
+        
+        <h1 class="post-title">${board.title}</h1>
+
+        <div class="post-header">
+		    <div class="user-info">
+		        <figure class="user-avatar">
+			        <c:if test="${board.uploader_img ne null && board.uploader_img ne ''}">
+			        <img src="/file/profile/${board.uploader_img}" alt="${board.uploader}">
+			        </c:if>
+		        </figure>
+		        <a href="/profile_detail.do?idx=${board.uploader_idx}" class="user">${board.uploader}</a> <!-- 닉네임 -->
+		        <span class="post-time">${board.register_date}</span> <!-- 작성 시간 -->
+		        <span class="view-count">
+		            <span class="material-symbols-outlined">visibility</span>${board.view} <!-- 조회수 -->
+		        </span>
+		    </div>
+		    <button class="follow-btn"><span class="material-symbols-outlined">e911_emergency</span>신고</button>
+		</div>
+		
+		<div class="post-content">
+		    <p>${board.contents}</p>
+		    <c:if test="${board.img_file ne null && board.img_file ne ''}">
+		    <figure class="post-image">
+		    	<img src="/file/bbs/${board.img_file}" alt="${board.img_origin}">
+		    </figure>
+		    </c:if>
+		</div>
+
+
+        <div class="post-actions">
+            <button class="post-like-btn">
+                <span class="material-symbols-outlined">favorite_border</span>
+                좋아요
+            </button>
+            <button class="action-btn" id="list-btn">목록</button>
+            <button class="action-btn" id="prev-btn">이전글</button>
+            <button class="action-btn" id="next-btn">다음글</button>            
+        </div>
+
+        <input type="hidden" id="boardIdx" value="${board.idx}"> <!-- 게시글 ID를 숨겨서 저장 -->
+
+        <div class="comment-input">
+            <input type="text" id="comment-input-field" placeholder="댓글을 작성해 주세요.">
+            <button id="submit-comment">등록</button>
+
+        </div>
+
+        <div class="comments-section">
+            <c:forEach var="chat" items="${chatList}">
+        	<div class="comment-box">
+	           <div class="comment-header">
+					<div class="comment-header-box">
+		               <div class="user-avatar"></div>
+		               <button class="nickname">${chat.user}</button>
+		               <span class="post-time">${chat.register_date}</span>
+					</div>
+	               <button class="follow-btn1"><span class="material-symbols-outlined">e911_emergency</span>신고</button>
+	           </div>
+	           <p class="comment-text">${chat.contents}</p>
+        	</div>
+        	</c:forEach>
+        </div>
+    </div>
+
+    <jsp:include page="/footer.jsp"/>
+
+    <script>
+    	$(function(){
+            document.getElementById('submit-comment').addEventListener('click', function() {
+                const commentInput = document.getElementById('comment-input-field');
+                const commentText = commentInput.value.trim();
+                const boardIdx = document.getElementById('boardIdx').value;
+        
+                if (commentText === "") {
+                    alert("댓글을 입력하세요.");
+                    return;
+                }
+        
+                const boardChat = {
+                    content: commentText,
+                    boardIdx: boardIdx,
+                };
+        
+                $.ajax({
+                    url: '/ajax_chatInsert.do',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(boardChat),
+                    dataType: 'json',
+                    success: function(data) {
+                        if (data.success) {
+                            alert("댓글이 등록되었습니다.");
+                            addCommentToSection(commentText);
+                            commentInput.value = ""; // 입력 필드 초기화
+                        } else {
+                            alert("댓글 등록에 실패했습니다.");
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        alert("댓글 등록 중 오류가 발생했습니다.");
+                        console.error("AJAX Error:", error);
+                        console.error("Server Response:", xhr.responseText);
+                    }
+                });
+
+            });
+        
+            function addCommentToSection(commentText) {
+                const commentsSection = document.querySelector('.comments-section');
+                const newComment = document.createElement('div');
+                newComment.className = 'comment';
+                newComment.innerHTML = `
+                    <div class="comment-header">
+                        <div class="user-avatar"></div>
+                        <button class="nickname">닉네임</button>
+                        <span class="post-time">방금 전</span>
+                        <button class="follow-btn1"><span class="material-symbols-outlined">e911_emergency</span>신고</button>
+                    </div>
+                    <p class="comment-text">\${commentText}</p>
+                    <div class="comment-actions">
+                        /* <button class="like-btn">
+                            <span class="material-symbols-outlined">favorite_border</span>
+                            좋아요
+                        </button> */
+                        <button class="reply-btn1">댓글달기</button>
+                    </div>
+                `;
+                commentsSection.appendChild(newComment);
+            }
+    		
+    	})
+    </script>
+    
+</body>
+</html>

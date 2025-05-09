@@ -1,0 +1,13 @@
+package egovframework.service;
+
+import java.util.List;
+
+public interface BoardService {
+    List<BoardVO> selectBoardList(Integer offset, Integer boardPageSize);
+
+	int insertBoard(BoardVO boardVO);
+
+	int selectLastPost(BoardVO boardVO);
+
+	List<ChannelVO> selectChannelList(String id);
+}

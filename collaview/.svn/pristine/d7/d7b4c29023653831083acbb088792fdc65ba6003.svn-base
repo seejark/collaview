@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.service.impl.ProfileMapper">
+
+<select id="selectUser" parameterType="java.lang.Integer" resultType="java.util.HashMap">
+SELECT u.idx, u.id, u.`name`, u.nick, u.phone, u.birth, u.email, u.company_chk, u.artist_chk, u.profile_file, u.profile_origin,
+	u.terms_chk, u.privacy_chk, u.register_date, u.modify_date,
+	AVG(ua.score) AS score
+FROM `user` u
+LEFT JOIN user_attitude ua ON ua.target = u.id
+WHERE u.idx = #{idx} AND u.hidden_date IS NULL AND u.del_date IS NULL
+GROUP BY u.idx
+</select>
+
+<select id="selectUserHistory" parameterType="java.lang.Integer" resultType="java.util.HashMap">
+SELECT *
+FROM `user_history`
+WHERE `user` = (SELECT id FROM `user` WHERE idx = #{idx})
+</select>
+
+<select id="selectUserKeyword" parameterType="java.lang.Integer" resultType="java.util.HashMap">
+SELECT k.*
+FROM user_keyword uk, keyword k
+WHERE uk.user = (SELECT id FROM user WHERE idx = #{idx})
+and uk.idx = k.idx
+</select>
+
+<select id="selectUserCompany" parameterType="java.lang.Integer" resultType="java.util.HashMap">
+SELECT idx, `user`, company, CONCAT(region1, ' ', region2, ' ', region_etc) AS company_addr
+FROM `user_company`
+WHERE `user` = (SELECT id FROM `user` WHERE idx = #{idx})
+</select>
+
+<select id="selectUserArtist" parameterType="java.lang.Integer" resultType="java.util.HashMap">
+SELECT idx, `user`, email_ok, CONCAT(region1, ' ', region2, ' ', region_etc) AS addr, position, category
+FROM `user_artist`
+WHERE `user` = (SELECT id FROM `user` WHERE idx = #{idx})
+</select>
+
+<select id="selectUserDelDate" parameterType="egovframework.service.LoginVO" resultType="java.lang.String">
+SELECT del_date
+FROM `user`
+WHERE id = #{id} AND pw = SHA2(#{pw}, 256)
+</select>
+
+<select id="selectMyChannel">
+	SELECT
+		c.channel,
+	    c.ch_name,
+	    c.thumbnail_file,
+	    c.creator           AS leader,
+	    c.user              AS leader_id,
+	    cm.admin,
+	    COALESCE(cm.register_date, c.register_date) as register_date
+	FROM view_channel c
+	LEFT JOIN ch_member cm
+	  ON cm.channel = c.channel
+	 AND cm.user = (
+	       SELECT id
+	       FROM `user`
+	       WHERE idx = #{idx}
+	     )
+	WHERE
+	    c.user = (SELECT id FROM `user` WHERE idx = #{idx})
+	 OR cm.user = (SELECT id FROM `user` WHERE idx = #{idx})
+	ORDER BY
+	    COALESCE(cm.register_date, c.register_date) DESC
+	LIMIT #{offset}, #{pageSize};
+</select>
+
+<select id="selectMyInfo">
+	select u.*, avg(ua.score) as score from user u, user_attitude ua where u.id = #{id} and ua.target = #{id}
+</select>
+
+<update id="deleteUser" parameterType="egovframework.service.LoginVO">
+UPDATE `user`
+SET del_date = NOW()
+WHERE id = #{id} AND pw = SHA2(#{pw}, 256)
+</update>
+
+
+</mapper>

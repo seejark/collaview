@@ -1,0 +1,84 @@
+package egovframework.service.impl;
+
+import java.util.List;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import egovframework.service.BoardService;
+import egovframework.service.BoardVO;
+import egovframework.service.ChannelVO;
+import egovframework.service.FileVO;
+import egovframework.service.RecruitVO;
+import egovframework.service.BoardChatVO;
+import egovframework.service.BoardSearchVO;
+
+@Service("boardService")
+public class BoardServiceImpl implements BoardService {
+
+    @Autowired
+    private BoardMapper boardMapper;
+    
+    @Autowired
+    private EgovCvMapper egovCvMapper;
+    
+    @Override
+    public Integer selectBoardTotCnt() {
+		return boardMapper.selectBoardTotCnt();
+    }
+
+    @Override
+    public List<BoardVO> selectBoardList(Integer offset, Integer boardPageSize) {
+        return boardMapper.selectBoardList(offset, boardPageSize);
+    }
+    
+    @Override
+    public int insertBoard(BoardVO boardVO) {
+    	
+		if(boardVO.getCategory().equals("hire") || boardVO.getCategory().equals("scout")) {
+			return boardMapper.insertRecruit(boardVO);
+		}
+		else {
+			return boardMapper.insertBoard(boardVO);
+		}
+    }
+    
+    @Override
+    public int selectLastPost(BoardVO boardVO) {
+    	if(boardVO.getCategory().equals("hire") || boardVO.getCategory().equals("scout")) {
+			return boardMapper.selectLastRecruit();
+		}
+		else {
+			return boardMapper.selectLastBoard();
+		}
+    }
+    
+    @Override
+    public List<ChannelVO> selectChannelList(String id) {
+    	return boardMapper.selectChannelList(id);
+    }
+
+	@Override
+	public BoardVO selectBoardDetail(String table, Integer idx) {
+		return boardMapper.selectBoardDetail(table, idx);
+	}
+
+	@Override
+	public List<FileVO> selectBoardFile(String table, Integer idx) {
+		return boardMapper.selectBoardFile(table, idx);
+	}
+
+	@Override
+	public List<BoardChatVO> selectBoardChat(Integer idx) {
+		return boardMapper.selectBoardChat(idx);
+	}
+    
+    @Override
+    public List<ChannelVO> selectChannelListAll(String id) {
+    	return boardMapper.selectChannelListAll(id);
+    }
+
+	@Override
+	public int insertRecruitApply(RecruitVO recruitVO) {
+		return insertRecruitApply(recruitVO);
+	}
+	
+}

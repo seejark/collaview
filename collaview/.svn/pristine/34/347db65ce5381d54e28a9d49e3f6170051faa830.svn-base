@@ -1,0 +1,20 @@
+package egovframework.service;
+
+import java.time.LocalDateTime;
+import lombok.Data;
+
+@Data
+public class BoardChatVO {
+    private int idx;                
+    private int chat;               
+    private byte classLevel;        
+    private byte order;             
+    private String user;            
+    private int board;              
+    private String contents;        
+    private int good;              
+    private LocalDateTime registerDate; 
+    private LocalDateTime modifyDate;  
+    private LocalDateTime hiddenDate;   
+    private LocalDateTime delDate;      
+}

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.service.impl.BoardMapper">
+
+    <!-- select -->
+    <select id="selectBoardList" resultType="egovframework.service.BoardVO">
+		select * from view_bbs
+		limit #{offset}, #{boardPageSize}
+	</select>
+	
+	<select id="selectLastBoard" resultType="int">
+		select idx from board order by idx desc limit 1;
+	</select>
+	
+	<select id="selectLastRecruit" resultType="int">
+		select idx from recruit order by idx desc limit 1;
+	</select>
+	
+	<select id="selectChannelList" resultType="egovframework.service.ChannelVO">
+		select * from channel where user = #{id};
+	</select>
+	
+	<select id="selectBoardDetail" resultType="egovframework.service.BoardVO">
+		select * from view_bbs where `table` = #{table} and idx = #{idx};
+	</select>
+	
+	<select id="selectBoardChat" resultType="egovframework.service.BoardVO">
+		select bc.* from board_chat bc where bc.`board` = #{idx} and bc.hidden_date IS NULL and bc.del_date IS NULL;
+	</select>
+	
+	<!-- insert -->
+	<insert id="insertRecruit">
+		insert into recruit values(default, #{boardVO.category}, #{boardVO.user}, #{boardVO.channel}, #{boardVO.view}, #{boardVO.title}, #{boardVO.contents}, #{boardVO.start_date}, #{boardVO.end_date}, default, default, default, default)
+	</insert>
+	
+	<insert id="insertBoard">
+		insert into board values(default, #{boardVO.category}, #{boardVO.user}, #{boardVO.view}, #{boardVO.title}, #{boardVO.contents}, #{boardVO.good}, default, default, default, default)
+	</insert>
+
+</mapper>

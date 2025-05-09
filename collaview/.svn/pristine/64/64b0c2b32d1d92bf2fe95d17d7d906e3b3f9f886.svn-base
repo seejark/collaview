@@ -1,0 +1,11 @@
+package egovframework.service;
+
+import java.util.HashMap;
+
+public interface ProfileService {
+	HashMap selectUserProfile(Integer idx) throws Exception;
+	
+    void deleteUser(LoginVO input) throws Exception;
+
+    String selectUserDelDate(LoginVO input) throws Exception;
+}

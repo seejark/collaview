@@ -1,0 +1,45 @@
+package egovframework.service;
+
+import java.io.IOException;
+import java.util.List;
+
+import org.apache.ibatis.annotations.Param;
+import org.springframework.web.multipart.MultipartFile;
+
+public interface VideoService {
+
+	List<KeywordVO> selectKeywordList();
+
+	int insertVideo(VideoVO videoVO, MultipartFile video, MultipartFile thumbnail, String uploadDir)
+			throws IllegalStateException, IOException;
+	
+	int selectVideoIdx();
+
+	int insertFile(String id, Integer num, MultipartFile video, String table, String uploadDir)
+			throws IllegalStateException, IOException;
+
+	int insertKeyword(List<String> keywords);
+
+	List<KeywordVO> selectMyKeywordList(int idx);
+
+	VideoVO selectVideoInfo(int idx);
+
+	List<FileVO> selectVideoFile(int idx);
+
+	List<FileVO> selectFileList(int idx, String table);
+
+	List<MainVideoVO> selectMainVideoNoneUser(MainInputVO input);
+
+	UserVO selectEmsembleDuplication(String id, int num, String table);
+
+	String insertRating(String id, int idx, int skill, int manner, int charisma, int perform);
+
+	UserVO selectRatingCheck(int idx, String id);
+
+	void insertView(int idx, String id, String ip);
+
+	VideoVO selectVideoView(int idx, String ip);
+
+	ReportsVO selectReportsCheck(String id, int idx);
+
+}

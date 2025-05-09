@@ -1,0 +1,218 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.service.impl.ChannelMapper">
+	
+	<!-- select -->
+	<select id="selectKey" resultType="int">
+		select coalesce(count(c.key), 0) from channel c where c.key = #{key};
+	</select>
+	
+	<select id="selectId" resultType="egovframework.service.UserVO">
+		select * from user where id = #{id};
+	</select>
+	
+	<select id="selectChannelIdx" resultType="int">
+		select c.idx from channel c where c.key = #{key};
+	</select>
+	
+	<select id="selectChannel" resultType="egovframework.service.ChannelVO">
+		select c.* from channel c where c.idx = #{idx};
+	</select>
+	
+	<select id="selectChannelMember" resultType="egovframework.service.UserVO">
+		select u.*, cm.user, cm.admin
+		from ch_member cm, user u 
+		where 1=1
+		and cm.channel = #{idx}
+		and cm.del_date is null
+		and u.id = cm.user;
+	</select>
+	
+    <select id="selectVideoList" resultType="egovframework.service.VideoVO">
+        select *
+		from view_ch_video
+		where channel = #{idx}
+		order by register_date desc
+		limit #{videoPageSize} offset #{offset}
+    </select>
+	
+    <select id="selectVideoAll" resultType="egovframework.service.VideoVO">
+        select *
+		from view_ch_video
+		where channel = #{idx}
+		order by register_date desc
+    </select>
+    
+    <select id="selectRecruitList" resultType="egovframework.service.RecruitVO">
+        select *
+        from recruit_apply ra, recruit r
+        where 1=1 
+        and ra.channel = #{idx}
+        and ra.recruit = r.idx 
+        order by ra.register_date desc
+    </select>
+    
+    <select id="selectRecruitApplyList" resultType="egovframework.service.RecruitVO">
+        select ra.idx, r.category, r.title, u.nick as user, c.level
+        from recruit_apply ra, user u, recruit r, view_channel c
+        where 1=1
+        and ra.channel = #{idx}
+        and ra.recruit = r.idx
+        and r.user = u.id
+        and c.channel = ra.channel
+        order by ra.register_date desc
+        limit #{applyPageSize} offset #{offset};
+    </select>
+    
+    <select id="getTotalVideoCount" resultType="int">
+        select coalesce(count(*), 0)
+        from view_ch_video
+        where channel = #{idx}
+    </select>
+    
+    <select id="getTotalAplicationCount" resultType="int">
+        select coalesce(count(*), 0)
+        from recruit_apply
+        where channel = #{idx}
+    </select>
+    
+    <select id="selectChannelViewCnt" resultType="int">
+        select coalesce(sum(view),0)
+        from view_ch_video
+        where channel = #{idx}
+    </select>
+    
+    <select id="selectAuraAvg" resultType="Double">
+        select coalesce(avg(charisma),0)
+        from view_ch_video
+        where channel = #{idx}
+    </select>
+    
+    <select id="selectSkillAvg" resultType="Double">
+        select coalesce(avg(skill),0)
+        from view_ch_video
+        where channel = #{idx}
+    </select>
+    
+    <select id="selectBookmark" resultType="egovframework.service.ChannelVO">
+        select * from user_bookmark where channel = #{idx} and user = #{id}
+    </select>
+    
+    <select id="selectMyApplication" resultType="egovframework.service.RecruitVO">
+        select ra.channel, ra.register_date, ra.check_date, r.*, ra.status 
+        from recruit r, recruit_apply ra 
+        where 1=1
+        and ra.idx = #{idx} 
+        and r.idx = ra.recruit
+    </select>
+	
+	<select id="selectChannelChart" resultType="egovframework.service.ChannelVO">
+		select c.*, vc.*, count(bm.idx) AS bookmark_cnt, 
+		group_concat(distinct cm.user separator ', ') as member
+		from view_channel c
+		inner join view_ch_chart vc on vc.channel = c.channel
+		left join user_bookmark bm on bm.channel = c.channel
+		left join ch_member cm on cm.channel = c.channel and cm.del_date is null
+		group by c.channel, vc.month_view, vc.month_rating
+		order by(vc.month_view + vc.month_rating) desc
+		limit #{offset}, #{pageSize};
+	</select>
+	
+	<select id="selectVideoChart" resultType="egovframework.service.VideoVO">
+		select vc.*, count(bm.channel) as bookmark
+		from view_ch_video vc
+		inner join user_bookmark bm on vc.channel = bm.channel
+		group by vc.video
+		order by vc.view desc
+		limit #{offset}, #{pageSize};
+	</select>
+	
+	<select id="selectChannelList" resultType="egovframework.service.ChannelVO">
+		select 
+	    c.*, 
+	    count(bm.idx) as bookmark_cnt, 
+	    group_concat(distinct cm.user separator ', ') as member
+		from view_channel c
+		left join user_bookmark bm on bm.channel = c.channel
+		left join ch_member cm on cm.channel = c.channel and cm.del_date is null
+		where c.status != '삭제'
+		group by c.channel
+		having (c.user = #{id} or count(case when cm.user = #{id} then 1 end) > 0)
+		order by c.register_date desc
+		limit #{offset}, #{pageSize};
+	</select>
+	
+	<select id="selectBookmarkChannelList" resultType="egovframework.service.ChannelVO">
+		select c.* 
+		from view_channel c, user_bookmark ub
+		where 1=1 
+		and ub.user = #{id}
+		and ub.channel = c.channel
+		order by ub.order desc
+		limit #{offset}, #{pageSize};
+	</select>
+	
+	<select id="selectBookmarkCnt" resultType="int">
+		select count(*) from user_bookmark where channel = #{idx}; 
+	</select>
+	
+	<select id="selectBookmarkUserCnt" resultType="int">
+		select count(*) from user_bookmark where user = #{id}; 
+	</select>
+
+	<!-- insert -->
+	<insert id="insertChannel" parameterType="egovframework.service.ChannelVO" useGeneratedKeys="true" keyProperty="idx" keyColumn="idx">
+		insert into channel values(default, #{channelVO.name}, #{channelVO.key}, #{channelVO.contents}, #{channelVO.band_chk}, #{channelVO.thumbnail_file}, #{channelVO.thumbnail_origin}, #{channelVO.user}, #{channelVO.recruit_band}, #{channelVO.recruit_company}, default, default, null, null);
+	</insert>
+	
+	<insert id="insertChanelMember">
+		insert into ch_member values(default, #{channelIdx}, #{userVO.id}, #{managerCheck}, default, null);
+	</insert>
+	
+	<insert id="insertBookmark">
+		insert into user_bookmark values(default, #{bookCnt}, #{id}, #{idx}, default);
+	</insert>
+	
+	<!-- update -->
+	<update id="updateChannel">
+		update channel c set c.name = '${channelVO.name}', c.contents = '${channelVO.contents}', c.band_chk = '${channelVO.band_chk}', c.thumbnail_file = '${channelVO.thumbnail_file}', c.thumbnail_origin = '${channelVO.thumbnail_origin}', c.user = '${channelVO.user}', c.recruit_band = '${channelVO.recruit_band}', c.recruit_company = '${channelVO.recruit_company}', c.modify_date = default where c.idx = ${channelVO.idx};
+	</update>
+	
+	<update id="updateStatus">
+		update recruit_apply ra set ra.status = '${processing}', check_date = now() where ra.idx = ${idx};
+	</update>
+	
+	<update id="updateChanelMember">
+		update ch_member cm set cm.admin = '${managerCheck}' where cm.channel = #{channelIdx} and cm.user = #{memberId}
+	</update>
+	
+	<update id="updateChannelDel">
+		update channel set del_date = now() where user = #{id} and idx = #{idx};
+	</update>
+	
+	<update id="updateBookmarkOrderBeforeDel">
+		UPDATE user_bookmark
+		SET `order` = `order` - 1
+		WHERE `user` = #{id}
+		AND `order` > (
+		    SELECT `order` FROM (SELECT `order` FROM user_bookmark WHERE idx = #{idx}) AS tmp_order
+		);
+	</update>
+	
+	<update id="updateChannelOrder">
+		update user_bookmark ub set ub.order = #{order} where ub.user = #{id} and ub.channel = #{idx};
+	</update>
+	
+	<!-- delete -->
+	<delete id="deleteMember">
+		delete from ch_member where user = #{user};
+	</delete>
+	
+	<delete id="deleteAllMembers">
+		delete from ch_member where channel = #{idx};
+	</delete>
+	
+	<delete id="deleteBookmark">
+		delete from user_bookmark where channel = #{idx} and user = #{id};
+	</delete>
+</mapper>

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaview</title>
+
+    <link rel="stylesheet" href="/css/common.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <link rel="stylesheet" href="/css/profileView.css">
+</head>
+<body>
+    <header class="header" id="header">
+        <div class="btn_left">
+            <figure class="alarm"><span class="material-symbols-rounded">notifications</span></figure>
+        </div>
+        <a href="#" class="logo"><img src="/images/logo_s.png" alt="콜라뷰"></a>
+        <div class="btn_right">
+            <figure class="search"><span class="material-symbols-rounded">search</span></figure>
+            <figure class="more"><span class="material-symbols-rounded">more_vert</span>
+                <ul class="moreList">
+                    <li><a href="#">회원가입</a></li>
+                    <li><a href="#">프로필</a></li>
+                    <li><a href="#">문의/제안</a></li>
+                </ul>
+            </figure>
+        </div>
+    </header>
+
+    <main class="container" id="container">
+        <div class="user">
+            <figure class="userImg"><img src="/file/board/1743747922_asdfq_AI.jpg" alt="닉네임"></figure>
+            <div class="userTxt">
+                <strong class="nick">닉네임</strong>
+                <p class="attitude">Attitude: 친절왕</p>
+            </div>
+        </div>
+
+        <div class="email">
+            <p class="tit">이메일</p>
+            <p class="txt">example@gmail.com</p>
+        </div>
+        <div class="addr">
+            <p class="tit">주소</p>
+            <p class="txt">ㅇㅇ도 ㅇㅇ시 ㅇㅇ구</p>
+        </div>
+        <div class="history">
+            <p class="tit">이력</p>
+            <ul class="historyList">
+                <li class="file" data-file="1743747922_asdfq_AI.jpg">
+                	<span>이력명</span>
+                	<em>기간</em>
+                </li>
+                <li>
+                	<span>이력명</span>
+                	<em>기간</em>
+                </li>
+            </ul>
+        </div>
+        <div class="keyword">
+            <p class="tit">관심 분야</p>
+            <ul class="keywordList">
+                <li>락</li>
+                <li>밴드</li>
+                <li>기타</li>
+                <li>일렉</li>
+                <li>어쿠스틱</li>
+                <li>일렉</li>
+                <li>일렉</li>
+            </ul>
+        </div>
+        <div class="channel">
+            <p class="tit">소속 채널</p>
+            <div class="channelList">
+                <a href="#">
+                    <figure class="channelImg"><img src="/file/board/1743747922_asdfq_AI.jpg" alt="채널명"></figure>
+                    <div class="channelTxt">
+                        <div class="channelTitBox">
+                            <p class="channelName">채널명채널명채널명채널명채널명채널명채널명채널명채널명채널명채널명채널명채널명채널명채널명</p>
+                            <span class="channelLevel"></span>
+                        </div>
+                        <ul class="channelTxtBox">
+                            <li>직책: 중간 관리자 </li>
+                            <li>소속일: 2000.00.00</li>
+                            <li>리더: 닉네임</li>
+                        </ul>
+                    </div>
+                </a>
+                <a href="#">
+                    <figure class="channelImg"><img src="/file/board/1743747922_asdfq_AI.jpg" alt="채널명"></figure>
+                    <div class="channelTxt">
+                        <div class="channelTitBox">
+                            <p class="channelName">채널명</p>
+                            <span class="channelLevel"></span>
+                        </div>
+                        <ul class="channelTxtBox">
+                            <li>직책: 중간 관리자 </li>
+                            <li>소속일: 2000.00.00</li>
+                            <li>리더: 닉네임</li>
+                        </ul>
+                    </div>
+                </a>
+                <a href="#">
+                    <figure class="channelImg"><img src="/file/board/001743747922_asdfq_AI.jpg" alt="채널명"></figure>
+                    <div class="channelTxt">
+                        <div class="channelTitBox">
+                            <p class="channelName">채널명</p>
+                            <span class="channelLevel"></span>
+                        </div>
+                        <ul class="channelTxtBox">
+                            <li>직책: 중간 관리자 </li>
+                            <li>소속일: 2000.00.00</li>
+                            <li>리더: 닉네임</li>
+                        </ul>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+        <div class="btnWrap">
+            <a href="#" class="btn h45 long bc_point edit">수정</a>
+            <button type="button" class="btn h45 long bc_555 del">탈퇴</button>
+        </div>
+    </main>
+
+    <footer class="footer" id="footer">
+        <a href="#" class="footer_menu ranking">
+            <span class="material-symbols-outlined">crown</span>
+            <p>랭킹</p>
+        </a>
+        <a href="#" class="footer_menu board">
+            <span class="material-symbols-outlined">assignment</span>
+            <p>게시판</p>
+        </a>
+        <a href="#" class="footer_menu main">
+            <span class="material-symbols-outlined">home</span>
+            <p>메인</p>
+        </a>
+        <a href="#" class="footer_menu myChannel">
+            <span class="material-symbols-outlined">person</span>
+            <p>내 채널</p>
+        </a>
+        <a href="#" class="footer_menu bookmarks">
+            <span class="material-symbols-outlined">bookmark_heart</span>
+            <p>즐겨찾기</p>
+        </a>
+    </footer>
+
+    <div class="modal cancelAccountModal">
+        <div class="modalWrap">
+            <div class="txtWrap">
+                <p class="mb10">회원 탈퇴 시, 30일동안 가입이 제한되며 회원만이 이용 가능한 서비스를 이용하시지 못하게 됩니다.</p>
+                <p class="mb10">정말 탈퇴하시겠습니까?</p>
+                <p>탈퇴를 원하신다면, 비밀번호를 입력해주세요.</p>
+            </div>
+            <div class="pw inputBox toggleVisible">
+                <input type="password" name="pw">
+                <button type="button" class="visible"><span class="material-symbols-rounded">visibility_off</span></button>
+                <button type="button" class="nonvisible hidden"><span class="material-symbols-rounded">visibility</span></button>
+            </div>
+            <div class="btnBox">
+                <a href="#" class="btn h45 long bc_point process">탈퇴</a>
+                <button type="button" class="btn h45 long bc_555 cancel">취소</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/js/common.js"></script>
+
+    <script>
+        $(function(){
+            $(document).on('click', '.file', function () {
+                const fileName = $(this).data('file');
+                const fileUrl = '/file/history/' + fileName;
+
+                const a = document.createElement('a');
+                a.href = fileUrl;
+                a.download = fileName;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            });
+
+        })
+    </script>
+
+</body>
+</html>

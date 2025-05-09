@@ -1,0 +1,176 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<%@ taglib prefix="fn" uri="http://java.sun.com/jsp/jstl/functions"%>
+<!DOCTYPE html>
+<html>
+<head>
+<jsp:include page="/head.jsp" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.css" />
+<link rel="stylesheet" href="/css/channel_bookmarkList.css">
+	<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
+</head>
+<body class="changeOrder_modal">
+	<jsp:include page="/header.jsp" />
+	<main class="container" id="container">
+		<div class="edit">편집</div>
+		<div class="bookmark-list wrap">
+			<c:forEach var="channel" items="${channelList}">
+				<div class="bookmark-group wrap">
+					<div class="channel-info"
+						onclick="location.href='/channel_detail.do?idx=${channel.channel}'">
+						<img src="/file/thumbnail/${channel.thumbnail_file}" alt="${channel.thumbnail_origin}" class="avatar">
+						<div>
+							<strong class="channel-name">${channel.ch_name}</strong>
+							<p class="favorites">
+								<span class="material-symbols-outlined">bookmarks</span>
+								<span class="bookmark">${channel.bookmark_cnt}</span>
+							</p>
+						</div>
+					</div>
+					<div class="swiper-container swiperHidden">
+						<div class="swiper-wrapper video-list">
+							<c:forEach var="video" items="${channel.videoList}">
+								<div class="video-wrap swiper-slide" onclick="location.href='/video_page.do?idx=${video.video}'">
+									<div class="video-title">${video.title}</div>
+									<c:if test="${video.thumbnail_file ne null && video.thumbnail_file ne ''}">
+										<img src="/file/video/${video.thumbnail_file}" alt="${video.thumbnail_origin}" class="avatar-video">
+									</c:if>
+									<c:if test="${video.thumbnail_file eq null || video.thumbnail_file eq ''}">
+										<video src="/file/video/${video.file_name}" class="avatar-video" class="avatar-video"></video>
+									</c:if>
+								</div>
+							</c:forEach>
+						</div>
+					</div>
+				</div>
+			</c:forEach>
+		</div>
+	</main>
+
+	<div id="editModal" class="modal">
+		<div class="modalWrap">
+			<span class="close">&times;</span>
+			<h2>편집 모달</h2>
+			<p>여기에 편집 관련 설정 내용을 입력하세요.</p>
+		</div>
+	</div>
+	<jsp:include page="/footer.jsp" />
+	<script src="https://cdn.jsdelivr.net/npm/swiper@8/swiper-bundle.min.js"></script>
+	<script>
+		var currentType = "channel";
+		var currentPage = 1;
+		var isLoading = false;
+		var hasMoreItems = true;
+		
+		function loadMoreItems() {
+			if(isLoading || !hasMoreItems) return;
+			isLoading = true;
+			currentPage++;
+			
+			var url = "/channel_loadBookmarkList.do";
+			
+			
+			$.ajax({
+				url: url,
+				method: "post",
+				data: { page: currentPage },
+				success: function(html) {
+				if($.trim(html) === ""){
+					hasMoreItems = false;
+				} else {
+					$(".bookmark-list").append(html);
+				}
+					isLoading = false;
+				},
+				error: function(xhr, status, error) {
+					console.error("Error loading items:", error);
+					isLoading = false;
+				}
+			});
+		}
+		
+		$(window).scroll(function() {
+			if($(window).scrollTop() + $(window).height() >= $(document).height() - 100){
+				loadMoreItems();
+			}
+		});
+		
+	  	function stopPropagation(event) {
+			event.stopPropagation();
+		}
+	  	
+		document.addEventListener('DOMContentLoaded', function() {
+			const mySwiper = new Swiper('.swiper-container', {
+				slidesPerView : 1,
+				spaceBetween : 10,
+				breakpoints : {
+					1024 : {
+						slidesPerView : 12,
+					},
+					768 : {
+						slidesPerView : 8,
+					},
+					600 : {
+						slidesPerView : 6,
+					},
+					
+					500 : {
+						slidesPerView : 5,
+					},
+					414 : {
+						slidesPerView : 4,
+					},
+					300 : {
+						slidesPerView : 3,
+					},
+					280 : {
+						slidesPerView : 2,
+					},
+				},
+			});
+			var editBtn = document.querySelector(".edit");
+			editBtn.addEventListener("click", function(event) {
+				event.preventDefault();
+				openModal("/channel_changeOrder.do");
+			});
+		});
+			
+		
+		function openModal(url) {
+			$(".modalWrap").load(url, function(response, status, xhr) {
+				if (status === "error") {
+					console.error("Error loading modal content: ", xhr.statusText);
+					$(".modalWrap").html("<p>내용을 불러오는데 실패했습니다.</p>");
+				}
+				document.getElementById("editModal").style.display = "block";
+				var closeBtn = document.querySelector("#editModal .close");
+				if (closeBtn) {
+					closeBtn.addEventListener("click", closeModal);
+				}
+			});
+			$("#modalContainer")
+				.load("/channel_changeOrder.do", function() {
+					// fragment 삽입 완료 후에야 초기화
+					$("#sortable").sortable({ handle: ".menu" });
+					$("#sortable").disableSelection();
+				});
+		}
+		
+		function closeModal() {
+			document.getElementById("editModal").style.display = "none";
+		}
+		
+		document.addEventListener("DOMContentLoaded", function() {
+			window.addEventListener("click", function(event) {
+				var modal = document.getElementById("editModal");
+				if (event.target === modal) {
+					closeModal();
+				}
+			});
+		});
+	</script>
+</body>
+</html>

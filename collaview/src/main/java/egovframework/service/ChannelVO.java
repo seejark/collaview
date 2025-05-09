@@ -1,0 +1,51 @@
+package egovframework.service;
+
+import java.time.LocalDateTime;
+import java.util.List;
+
+import lombok.Data;
+
+@Data
+public class ChannelVO { 
+	private Integer idx;                
+    private String name;               
+    private String key;               
+    private String contents;               
+    private String band_chk;               
+    private String thumbnail_file;            
+    private String thumbnail_origin;            
+    private String user;            
+    private String recruit_band;            
+    private String recruit_company;            
+    private LocalDateTime register_date; 
+    private LocalDateTime modify_date;  
+    private LocalDateTime hidden_date;   
+    private LocalDateTime del_date;  
+    
+//    차트
+	private int channel;
+	private String ch_name;
+	private double hour_view;
+	private double day_view;
+	private double week_view;
+	private double month_view;
+	private double hour_rating;
+	private double day_rating;
+	private double week_rating;
+	private double month_rating;
+	
+	private int bookmark_cnt;
+	private String last_upload;
+	private String member;
+	private String isMember;
+	private List<VideoVO> videoList;
+	private String admin;
+	private String leader;
+	private String leader_id;
+	private int rank;
+	
+
+//		생성자 프로필 이미지
+	private String profile_file;
+	private String profile_origin;
+}

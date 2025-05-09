@@ -1,0 +1,19 @@
+@charset "UTF-8";
+
+.container {padding: 88px 16px 76px;}
+.logo {display: flex; justify-content: center; align-items: center;
+    margin-bottom: 74px;
+}
+.inputTit {margin-bottom: 8px;
+    font-weight: 700; font-size: 0.9rem;
+}
+.inputBox {width: 100%; height: 40px; margin-bottom: 8px;
+    border: 1px solid #ddd; border-radius: 5px;
+}
+.id .inputBox {padding: 0 8px;}
+.autoLogin {display: flex; align-items: center;
+    margin-bottom: 10px;
+}
+.autoLogin .checkBox {margin-right: 3px;}
+.autoLogin .checkLabel {font-size: 13px;}
+.btn.login {margin-bottom: 16px;}
